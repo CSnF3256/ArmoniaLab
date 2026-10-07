@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "ArmoníaLab: levantar proyecto",
+            "type": "shell",
+            "command": "docker compose up --build",
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "armonialab",
+                "pattern": {
+                    "regexp": ".*"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*Building.*|.*Attaching.*",
+                    "endsPattern": ".*Server running on.*"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "ArmoníaLab: detener proyecto",
+            "type": "shell",
+            "command": "docker compose down",
+            "problemMatcher": []
+        }
+    ]
+}
