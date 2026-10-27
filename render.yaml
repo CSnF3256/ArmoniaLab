@@ -15,17 +15,8 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        fromDatabase:
-          name: armonialab-db
-          property: connectionString
+        sync: false
       - key: SESSION_DRIVER
         value: database
       - key: CACHE_STORE
         value: database
-
-databases:
-  - name: armonialab-db
-    databaseName: armonialab
-    user: armonialab
-    plan: free
-    region: oregon
