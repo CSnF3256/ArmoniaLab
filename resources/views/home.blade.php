@@ -19,7 +19,7 @@
         </div>
     </div>
     <div class="hero-image">
-        <img src="{{ asset('images/music-hero.png') }}" alt="Ilustración de un teclado, audífonos y notas musicales">
+        <img src="/images/music-hero.png" alt="Ilustración de un teclado, audífonos y notas musicales">
     </div>
 </section>
 
