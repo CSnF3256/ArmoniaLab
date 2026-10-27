@@ -47,7 +47,7 @@ class AdminTipoAcordeController extends Controller
             'intervalos_semitonos' => [
                 'required',
                 'string',
-                new ValidIntervalStructure(),
+                new ValidIntervalStructure,
             ],
         ], [
             'intervalos_semitonos.required' => 'La fórmula de intervalos en semitonos es obligatoria para el cálculo armónico.',
@@ -57,7 +57,7 @@ class AdminTipoAcordeController extends Controller
         // Formatear a formato estándar [0, 4, 7]
         $limpio = str_replace(['[', ']', ' '], '', $validated['intervalos_semitonos']);
         $array = array_map('intval', explode(',', $limpio));
-        $formateado = '[' . implode(', ', $array) . ']';
+        $formateado = '['.implode(', ', $array).']';
 
         TipoAcorde::create([
             'nombre' => $validated['nombre'],
@@ -69,6 +69,44 @@ class AdminTipoAcordeController extends Controller
 
         return redirect()->route('admin.tipos-acordes.index')
             ->with('success', "Tipo de acorde '{$validated['nombre']}' registrado y validado en Back-End exitosamente.");
+    }
+
+    /**
+     * Muestra el formulario para editar un tipo de acorde del Core musical.
+     */
+    public function edit(TipoAcorde $tipoAcorde): View
+    {
+        return view('admin.tipos_acordes.edit', [
+            'tipoAcorde' => $tipoAcorde,
+        ]);
+    }
+
+    /**
+     * Actualiza el tipo de acorde aplicando nuevamente la validación Back-End.
+     */
+    public function update(Request $request, TipoAcorde $tipoAcorde): RedirectResponse
+    {
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:100', 'unique:tipo_acordes,nombre,'.$tipoAcorde->id],
+            'simbolo' => ['required', 'string', 'max:20'],
+            'categoria' => ['required', 'string', 'in:Tríadas,Séptimas,Suspendidos,Alterados,Extendidos'],
+            'descripcion' => ['nullable', 'string'],
+            'intervalos_semitonos' => ['required', 'string', new ValidIntervalStructure],
+        ]);
+
+        $limpio = str_replace(['[', ']', ' '], '', $validated['intervalos_semitonos']);
+        $intervalos = array_map('intval', explode(',', $limpio));
+
+        $tipoAcorde->update([
+            'nombre' => $validated['nombre'],
+            'simbolo' => $validated['simbolo'],
+            'categoria' => $validated['categoria'],
+            'intervalos_semitonos' => '['.implode(', ', $intervalos).']',
+            'descripcion' => $validated['descripcion'] ?? null,
+        ]);
+
+        return redirect()->route('admin.tipos-acordes.index')
+            ->with('success', "Tipo de acorde '{$tipoAcorde->nombre}' actualizado correctamente.");
     }
 
     /**

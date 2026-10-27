@@ -63,10 +63,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('usuarios', AdminUserController::class)->except(['show']);
 
     // Creación y Gestión de Ejercicios con Dropdowns Dependientes Curso -> Lección
-    Route::resource('ejercicios', AdminEjercicioController::class)->only(['index', 'create', 'store', 'destroy']);
+    Route::resource('ejercicios', AdminEjercicioController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
     // Gestión del Core Musical con Validación Back-End de Intervalos
     Route::resource('tipos-acordes', AdminTipoAcordeController::class)
         ->parameters(['tipos-acordes' => 'tipoAcorde'])
-        ->only(['index', 'create', 'store', 'destroy']);
+        ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 });

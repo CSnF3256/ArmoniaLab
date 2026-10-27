@@ -202,7 +202,7 @@ El seeder del sistema (`php artisan db:seed`) incluye tres perfiles precargados:
 ## 💻 Instalación y Ejecución Local
 
 ### Requisitos
-- PHP 8.2 o superior con extensiones `pdo_sqlite`, `mbstring`, `openssl`, `tokenizer`, `xml` y `curl`.
+- PHP 8.2 o superior con extensiones `pdo_sqlite`, `pdo_pgsql`, `mbstring`, `openssl`, `tokenizer`, `xml` y `curl`.
 - Composer 2.x
 
 ### Pasos de Instalación
@@ -251,13 +251,14 @@ El seeder del sistema (`php artisan db:seed`) incluye tres perfiles precargados:
 
 ## 🧪 Batería de Pruebas Automáticas
 
-El proyecto cuenta con **27 pruebas automáticas** que cubren los requerimientos y reglas de negocio implementados:
+El proyecto cuenta con **30 pruebas automáticas** que cubren los requerimientos y reglas de negocio implementados:
 
 ```bash
 php artisan test
 ```
 
 ### Resumen de Suites de Pruebas:
+- `AdminCoreCrudTest`: Verifica la edición y actualización de tipos de acordes y ejercicios, incluyendo el rechazo de relaciones Curso → Lección inconsistentes.
 - `MusicalCoreTest`: Comprueba los criterios 1, 2, 3 y 4 del documento de análisis (Do Mayor, Do Menor, Séptima dominante, validación de parámetros y biblioteca personal).
 - `BackendValidationTest`: Verifica la aceptación de cédulas ecuatorianas válidas por Módulo 10 y el rechazo estricto en el servidor de cédulas manipuladas, códigos de provincia fuera de rango y fórmulas musicales inconsistentes.
 - `CascadingDropdownsTest`: Verifica que los endpoints de geografía y cursos retornen exclusivamente los hijos de la entidad seleccionada y rechace en el Back-End la asignación de claves foráneas no pertenecientes al padre.
@@ -270,25 +271,48 @@ php artisan test
 
 Para cumplir con el requerimiento de tener la aplicación **deployada en un servidor en la nube y no en localhost**, el proyecto incluye configuración lista para despliegue automatizado.
 
-### Opción A: Despliegue Gratuito en Render.com (Recomendado)
+### Opción A: Render + Neon PostgreSQL (Configuración utilizada)
 
-Render permite alojar servicios web basados en Docker o PHP de manera gratuita con HTTPS automático:
+La aplicación está desplegada como servicio Docker en Render y utiliza una base PostgreSQL persistente alojada en Neon. SQLite se conserva únicamente como alternativa sencilla para desarrollo local.
 
-1. Crea una cuenta gratuita en [Render.com](https://render.com).
-2. Conecta tu cuenta de GitHub o GitLab.
-3. En el Dashboard de Render, presiona **New +** y selecciona **Blueprint**.
-4. Selecciona tu repositorio de `ArmoniaLab`.
-5. Render detectará automáticamente el archivo `render.yaml` incluido en la raíz del proyecto.
-6. En caso de preferir desplegarlo como **Web Service** estándar:
+1. Crear un proyecto PostgreSQL en [Neon](https://neon.tech) y copiar su cadena de conexión con SSL y conexión agrupada (pooled connection).
+2. Crear un Web Service en [Render](https://render.com), conectar este repositorio y seleccionar:
    - **Environment:** `Docker`
    - **Branch:** `main`
    - **Plan:** Free
-   - **Environment Variables:**
-     - `APP_ENV` = `production`
-     - `APP_DEBUG` = `false`
-     - `APP_KEY` = Ejecuta `php artisan key:generate --show` y copia el valor
-     - `DB_CONNECTION` = `sqlite`
-7. Presiona **Create Web Service**. Render compilará el `Dockerfile`, ejecutará las migraciones y sembradores mediante `docker/start.sh` y publicará la aplicación en una URL pública (ejemplo: `https://armonialab.onrender.com`).
+3. Configurar las variables de entorno en Render:
+
+   ```ini
+   APP_ENV=production
+   APP_DEBUG=false
+   APP_URL=https://armonialab.onrender.com
+   APP_KEY=base64:CLAVE_GENERADA_POR_LARAVEL
+   DB_CONNECTION=pgsql
+   DB_URL=postgresql://USUARIO:CONTRASENA@HOST-POOLER/BASE?sslmode=require
+   SESSION_DRIVER=database
+   CACHE_STORE=database
+   ```
+
+   `DB_URL` es un secreto y nunca debe guardarse en Git ni compartirse públicamente.
+
+4. Render construye el `Dockerfile`, que instala el controlador `pdo_pgsql` requerido por Laravel.
+5. Durante cada despliegue, `docker/start.sh` ejecuta de forma segura:
+
+   ```bash
+   php artisan migrate --force
+   php artisan db:seed --force
+   ```
+
+6. La aplicación pública se encuentra en [https://armonialab.onrender.com](https://armonialab.onrender.com), fuera de localhost y con HTTPS.
+
+Para comprobar que PostgreSQL contiene las tablas reales del sistema, se puede ejecutar en el SQL Editor de Neon:
+
+```sql
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
+ORDER BY table_name;
+```
 
 ### Opción B: Despliegue en Railway.app
 

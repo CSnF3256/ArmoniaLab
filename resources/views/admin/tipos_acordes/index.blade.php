@@ -36,6 +36,7 @@
                         <td><code class="formula-code">{{ $tipo->intervalos_semitonos }}</code></td>
                         <td class="text-sm text-muted">{{ Str::limit($tipo->descripcion, 60) }}</td>
                         <td>
+                            <a href="{{ route('admin.tipos-acordes.edit', $tipo) }}" class="button small secondary">Editar</a>
                             <form method="POST" action="{{ route('admin.tipos-acordes.destroy', $tipo) }}" class="inline-form" onsubmit="return confirm('¿Eliminar este tipo de acorde?');">
                                 @csrf
                                 @method('DELETE')

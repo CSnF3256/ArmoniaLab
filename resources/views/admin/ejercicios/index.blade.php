@@ -41,6 +41,7 @@
                         <td><code class="correct-text">{{ $ej->respuesta_correcta }}</code></td>
                         <td>{{ $ej->puntos }} pts</td>
                         <td>
+                            <a href="{{ route('admin.ejercicios.edit', $ej) }}" class="button small secondary">Editar</a>
                             <form method="POST" action="{{ route('admin.ejercicios.destroy', $ej) }}" class="inline-form" onsubmit="return confirm('¿Eliminar este ejercicio?');">
                                 @csrf
                                 @method('DELETE')
