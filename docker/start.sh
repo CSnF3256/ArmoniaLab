@@ -17,7 +17,10 @@ else
 fi
 unset APP_KEY
 
-touch database/database.sqlite
+if [ "${DB_CONNECTION:-sqlite}" = "sqlite" ]; then
+    touch database/database.sqlite
+fi
+
 php artisan migrate --force
 php artisan db:seed --force
 

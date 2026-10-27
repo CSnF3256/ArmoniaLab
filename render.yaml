@@ -13,8 +13,19 @@ services:
       - key: APP_URL
         sync: false
       - key: DB_CONNECTION
-        value: sqlite
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: armonialab-db
+          property: connectionString
       - key: SESSION_DRIVER
         value: database
       - key: CACHE_STORE
         value: database
+
+databases:
+  - name: armonialab-db
+    databaseName: armonialab
+    user: armonialab
+    plan: free
+    region: oregon
