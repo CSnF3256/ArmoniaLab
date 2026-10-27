@@ -10,7 +10,7 @@ WORKDIR /app
 COPY --from=dependencies /app/vendor ./vendor
 COPY . .
 
-RUN chmod +x docker/start.sh
+RUN cp .env.example .env && chmod +x docker/start.sh
 
 EXPOSE 8000
 

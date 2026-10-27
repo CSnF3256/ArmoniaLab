@@ -4,3 +4,5 @@ services:
     container_name: armonialab
     ports:
       - "8000:8000"
+    volumes:
+      - ./database/database.sqlite:/app/database/database.sqlite

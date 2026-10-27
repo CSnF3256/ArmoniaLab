@@ -1,184 +1,338 @@
-# ArmoníaLab
+# ArmoníaLab — Plataforma de Teoría Musical y Core Armónico MVC
 
-![Estado del proyecto](https://img.shields.io/badge/estado-en%20desarrollo-6d3fc0)
-![Laravel](https://img.shields.io/badge/Laravel-12-ff2d20)
-![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4)
-![Pruebas](https://img.shields.io/badge/pruebas-8%20aprobadas-a66f00)
+![Estado del proyecto](https://img.shields.io/badge/estado-avance%202%20completado-6d3fc0?style=for-the-badge)
+![Laravel](https://img.shields.io/badge/Laravel-12-ff2d20?style=for-the-badge&logo=laravel)
+![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=for-the-badge&logo=php)
+![Pruebas](https://img.shields.io/badge/pruebas-27%20aprobadas-1b8a5a?style=for-the-badge)
+![Despliegue](https://img.shields.io/badge/despliegue-docker%20%7C%20render-0284c7?style=for-the-badge&logo=docker)
 
-ArmoníaLab es una aplicación académica desarrollada con Laravel 12. Este primer avance demuestra el patrón MVC, autenticación y un CRUD protegido de cursos musicales. Es la base del proyecto semestral descrito en la propuesta general.
+ArmoníaLab es una plataforma web educativa orientada al aprendizaje práctico de la teoría musical, desarrollada con **PHP y Laravel 12** siguiendo estrictamente el patrón arquitectónico **Modelo-Vista-Controlador (MVC)**.
 
-![Página principal de ArmoníaLab](docs/images/armonialab-inicio.png)
+Este repositorio contiene la implementación del **Core Musical de cálculo y visualización interactiva de acordes**, la **validación en Back-End de datos sensibles**, la implementación de **dropdowns dependientes en cascada**, el módulo de **ejercicios con autocorrección inmediata** y el motor de **recomendaciones personalizadas por habilidad**.
 
-## Índice
+---
 
-- [Estado del proyecto](#estado-del-proyecto)
-- [Funcionalidades](#funcionalidades-de-este-avance)
-- [Tecnologías](#tecnologías)
-- [Instalación](#instalación)
-- [Demostración](#demostración)
-- [Arquitectura MVC](#arquitectura-mvc)
-- [Pruebas](#pruebas)
-- [Integrantes](#integrantes)
-- [Licencia](#licencia)
+## 👥 Integrantes del Proyecto
 
-## Estado del proyecto
+- **Camila Silva** — Facultad de Ingeniería y Ciencias Aplicadas (UDLA)
+- **Joel Chico** — Facultad de Ingeniería y Ciencias Aplicadas (UDLA)
 
-El proyecto se encuentra **en desarrollo**. El primer avance de autenticación y CRUD de cursos está terminado y probado. Los siguientes avances incorporarán lecciones, ejercicios y funcionalidades de análisis musical.
+**Asignatura:** ITIZ-2201 - Ingeniería Web (202710)
+**Institución:** Universidad de Las Américas (UDLA)
 
-## Funcionalidades de este avance
+---
 
-- Registro, inicio y cierre de sesión.
-- Protección de todas las URL de cursos mediante el middleware `auth`.
-- CRUD completo de cursos: crear, listar, consultar, editar y eliminar.
-- Autorización por propietario: cada usuario solo administra sus cursos.
-- Validación de formularios mediante `CourseRequest`.
-- Interfaz responsive hecha con Blade y CSS básico.
-- Datos de demostración y pruebas automáticas de autenticación, seguridad y CRUD.
+## 📑 Tabla de Contenidos
 
-## Tecnologías
+1. [Novedades de este Avance](#-novedades-de-este-avance)
+2. [El Core MVC: Generador y Visualizador de Acordes](#-el-core-mvc-generador-y-visualizador-de-acordes)
+3. [Validación en Back-End de Datos Sensibles](#-validación-en-back-end-de-datos-sensibles)
+4. [Dropdowns Dependientes en Cascada (Cascading Selects)](#-dropdowns-dependientes-en-cascada-cascading-selects)
+5. [Ejercicios con Autocorrección y Recomendaciones Adaptativas](#-ejercicios-con-autocorrección-y-recomendaciones-adaptativas)
+6. [Arquitectura MVC y Componentes](#-arquitectura-mvc-y-componentes)
+7. [Usuarios de Demostración](#-usuarios-de-demostración)
+8. [Instalación y Ejecución Local](#-instalación-y-ejecución-local)
+9. [Batería de Pruebas Automáticas](#-batería-de-pruebas-automáticas)
+10. [Guía de Despliegue en un Servidor (Fuera de Localhost)](#-guía-de-despliegue-en-un-servidor-fuera-de-localhost)
+11. [Control de Versiones en Git](#-control-de-versiones-en-git)
 
-- PHP 8.2 o superior
-- Laravel 12
-- SQLite por defecto
-- Blade, HTML y CSS
-- PHPUnit
+---
 
-## Instalación
+## 🚀 Novedades de este Avance
 
-### Opción recomendada con Visual Studio Code y Docker
+En cumplimiento de las directrices académicas y la retroalimentación docente recibida, este incremento incorpora:
 
-Esta opción no requiere instalar PHP ni Composer directamente en Windows.
+1. **Validación en Back-End de Datos Sensibles:** Implementación de la regla personalizada `ValidEcuadorianCedula` que valida cédulas de identidad ecuatorianas mediante el algoritmo oficial de **Módulo 10 del Registro Civil**, impidiendo su manipulación en cliente antes de persistir en base de datos. Se complementa con `ValidIntervalStructure` para la integridad armónica de las fórmulas musicales.
+2. **Dropdowns Dependientes / en Cascada:** Formularios donde ninguna clave foránea se ingresa mediante campos de texto manuales. Implementado en dos contextos:
+   - **Geográfico:** País → Provincia → Ciudad en el registro y gestión de usuarios.
+   - **Académico:** Curso → Lección dependiente en la creación administrativa de ejercicios.
+3. **Core Musical Interactivo:** Motor armónico basado en aritmética modular de 12 clases cromáticas, teclado de piano interactivo SVG/CSS con iluminación de teclas y síntesis de audio polifónica en tiempo real mediante **Web Audio API**.
+4. **Ejercicios con Corrección Automática:** Validación en servidor de respuestas de estudiantes, registro histórico de intentos con tiempo y puntaje.
+5. **Diagnóstico y Recomendaciones Personalizadas:** Análisis algorítmico de porcentaje de acierto por habilidad que detecta debilidades y genera dinámicamente rutas de práctica personalizadas.
+6. **Configuración para Despliegue en Servidor en la Nube:** Archivos `Dockerfile`, `docker/start.sh` con puerto dinámico y `render.yaml` listos para desplegar en plataformas cloud como Render, Railway o VPS.
 
-1. Instala y abre Docker Desktop.
-2. Abre Visual Studio Code.
-3. Selecciona **File → Open Folder** y abre la carpeta de ArmoníaLab.
-4. En Visual Studio Code selecciona **Terminal → Run Task**.
-5. Elige **ArmoníaLab: levantar proyecto**.
-6. Espera hasta ver el mensaje `Server running on`.
-7. Abre `http://127.0.0.1:8000` en el navegador.
+---
 
-Para apagar la aplicación, vuelve a **Terminal → Run Task** y elige **ArmoníaLab: detener proyecto**.
+## 🎹 El Core MVC: Generador y Visualizador de Acordes
 
-También se puede iniciar desde la terminal integrada:
+El núcleo funcional del proyecto permite al estudiante seleccionar una nota fundamental y un tipo de acorde, procesar los semitonos de intervalo y visualizar el resultado tanto en notación musical como en un teclado virtual interactivo.
 
-```powershell
-docker compose up --build
+### 1. Entradas y Salidas Verificables
+
+- **Entradas:**
+  - Nota fundamental: Cualquiera de las 12 clases cromáticas (`Do`, `Do#`, `Re`, `Re#`, `Mi`, `Fa`, `Fa#`, `Sol`, `Sol#`, `La`, `La#`, `Si`).
+  - Tipo de acorde: Modelo `TipoAcorde` (`Mayor`, `Menor`, `Séptima dominante`, `Séptima mayor`, `Disminuido`, `Aumentado`, `Sus4`, `Sus2`).
+- **Proceso:** Validación en controlador, recuperación de intervalos en semitonos desde la base de datos y cálculo en `AcordeService`.
+- **Fórmula Matemática:**
+  $$\text{Posición Cromatic} = (\text{Índice Fundamental} + \text{Intervalo en Semitonos}) \pmod{12}$$
+- **Salidas:**
+  - Nombre completo y cifrado anglosajón (ej: `Do Mayor` / `C`, `La menor` / `Am`, `Sol 7` / `G7`).
+  - Lista de notas integrantes y función interválica (Tónica, 3ra mayor/menor, 5ta justa, 7ma dominante).
+  - Teclado virtual interactivo con teclas resaltadas en la escala cromática.
+  - Síntesis polifónica con frecuencias audibles reales sintetizadas por el navegador.
+
+### 2. Criterios de Validación Básicos Comprobados
+
+- **Do Mayor:** Produce las notas `Do`, `Mi` y `Sol` con intervalos cromáticos `[0, 4, 7]`.
+- **Do Menor:** Produce `Do`, `Re#` (Mi bemol) y `Sol` con intervalos `[0, 3, 7]`.
+- **Séptima Dominante:** Produce cuatro notas (ej: Sol 7 → `Sol`, `Si`, `Re`, `Fa`) con intervalos `[0, 4, 7, 10]`.
+- **Validación:** Si se envían notas o tipos inexistentes, el servidor responde con errores descriptivos sin ejecutar el cálculo.
+
+---
+
+## 🛡️ Validación en Back-End de Datos Sensibles
+
+De acuerdo con el requerimiento de que *"El Admin debe tener al menos 1 validación en Back-End de algún dato sensible para su core y esta no puede ser validada solo con JS"*:
+
+### 1. Cédula de Identidad Ecuatoriana (`ValidEcuadorianCedula`)
+
+La cédula de identidad es un dato de carácter sensible y crítico en la identificación de estudiantes y docentes en el sistema académico. Se implementó una regla en Laravel (`app/Rules/ValidEcuadorianCedula.php`) ejecutada en el controlador antes de interactuar con la base de datos:
+
+1. **Longitud:** Exactamente 10 dígitos numéricos (`^[0-9]{10}$`).
+2. **Código de Provincia:** Los dos primeros dígitos deben pertenecer a una provincia legal de Ecuador (`01` a `24`, o `30` para consulados).
+3. **Tipo de Persona:** El tercer dígito para personas naturales debe ser estrictamente menor a 6 (`0` a `5`).
+4. **Algoritmo de Módulo 10:**
+   - Coeficientes multiplicadores: `[2, 1, 2, 1, 2, 1, 2, 1, 2]`.
+   - Para cada uno de los 9 primeros dígitos, se multiplica por su coeficiente. Si el resultado es $\ge 10$, se resta 9.
+   - Se suma el total. El residuo es $\text{suma} \pmod{10}$.
+   - Dígito verificador esperado: $(10 - \text{residuo}) \pmod{10}$.
+   - Si no coincide exactamente con el décimo dígito, el Back-End rechaza la petición con código de validación HTTP 422.
+
+### 2. Estructura Armónica de Intervalos (`ValidIntervalStructure`)
+
+Dato sensible para el Core de teoría musical. Al registrar o modificar tipos de acordes en el Panel de Administración:
+- Debe comenzar obligatoriamente en `0` (la tónica armónica).
+- Debe tener al menos 3 notas (tríada mínima).
+- Los semitonos deben ser números enteros estrictamente ascendentes (`0, 4, 7`).
+- Ningún intervalo puede superar los 24 semitonos (2 octavas).
+
+---
+
+## 🔗 Dropdowns Dependientes en Cascada (Cascading Selects)
+
+Cumpliendo la directiva de que las relaciones hacia otras tablas no pueden ser inputs simples de texto:
+
+### Contexto 1: Ubicación Geográfica (País → Provincia → Ciudad)
+- Utilizado en el Panel Admin (`/admin/usuarios/create` y `/admin/usuarios/{id}/edit`).
+- Al seleccionar un **País** (ej: Ecuador), una llamada asíncrona a `/api/paises/{id}/provincias` carga dinámicamente el dropdown de **Provincias** pertenecientes a ese país.
+- Al seleccionar una **Provincia** (ej: Pichincha), `/api/provincias/{id}/ciudades` puebla las **Ciudades** (Quito, Rumiñahui, etc.).
+- En el Back-End, `AdminUserController@store` valida mediante reglas `Rule::exists` que la provincia pertenezca al país seleccionado y que la ciudad pertenezca a la provincia seleccionada, garantizando integridad referencial.
+
+### Contexto 2: Jerarquía Académica (Curso → Lección)
+- Utilizado en la creación de ejercicios (`/admin/ejercicios/create`).
+- El administrador selecciona el **Curso** (ej: *Fundamentos de armonía*).
+- El dropdown de **Lecciones** se llena automáticamente mediante `/api/cursos/{id}/lecciones`.
+- Se vincula el ejercicio a la lección seleccionada sin necesidad de manipular claves foráneas manualmente.
+
+---
+
+## 🧠 Ejercicios con Autocorrección y Recomendaciones Adaptativas
+
+Atendiendo la recomendación docente: *"Se puede desarrollar ejercicios con corrección automática, registro de intentos y progreso por habilidad. Usen los resultados para proponer prácticas y validar respuestas de tal forma que sea algo un poco mas personalizado."*
+
+### 1. Corrección Automática en el Servidor (`EjercicioController@responder`)
+- El estudiante responde una pregunta interactiva con apoyo del teclado virtual.
+- La respuesta viaja al servidor donde se evalúa contra la clave armónica esperada.
+- Se registra de forma persistente un registro en la tabla `intentos` (`user_id`, `ejercicio_id`, `respuesta_usuario`, `es_correcta`, `puntaje_obtenido`, `explicacion_resultado`, `tiempo_segundos`, `habilidad`).
+- Se actualiza el progreso en `progreso_lecciones`.
+
+### 2. Motor de Recomendaciones Personalizadas (`RecomendacionService`)
+- El sistema agrupa los intentos del usuario por habilidad (`Tríadas Mayores`, `Tríadas Menores`, `Acordes de Séptima`, `Intervalos Armónicos`).
+- Clasifica el nivel de dominio del alumno:
+  - **Dominado:** Precisión $\ge 80\%$.
+  - **En Progreso:** Precisión entre $60\%$ y $79\%$.
+  - **Requiere Refuerzo (Habilidad Crítica):** Precisión $< 60\%$.
+- Cuando detecta debilidades (por ejemplo, fallos repetidos en *Tríadas Menores*), genera un banner dinámico de **"Práctica Inteligente Sugerida"** recomendando ejercicios específicos para superar esas debilidades.
+
+---
+
+## 🏗️ Arquitectura MVC y Componentes
+
+```
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── AcordeController.php           # Core MVC: cálculo, visualización y biblioteca
+│   │   ├── AuthController.php             # Login, registro y cierre de sesión
+│   │   ├── CourseController.php           # CRUD de cursos de música
+│   │   ├── EjercicioController.php        # Autocorrección e interactividad de ejercicios
+│   │   ├── GeoController.php              # API para dropdowns dependientes en cascada
+│   │   ├── ProgresoController.php         # Analítica y diagnóstico por habilidad
+│   │   └── Admin/
+│   │       ├── AdminDashboardController.php  # Métricas generales del sistema
+│   │       ├── AdminEjercicioController.php  # Ejercicios con cascada Curso->Lección
+│   │       ├── AdminTipoAcordeController.php # Core: validación de intervalos
+│   │       └── AdminUserController.php       # Usuarios: validación sensible de cédula
+│   └── Middleware/
+│       └── EnsureUserIsAdmin.php          # Protección de rutas administrativas
+├── Models/
+│   ├── AcordeGuardado.php                 # Biblioteca personal del estudiante
+│   ├── Ciudad.php                         # Geografía cascada
+│   ├── Course.php                         # Cursos musicales
+│   ├── Ejercicio.php                      # Preguntas de teoría musical
+│   ├── Intento.php                        # Registro histórico de evaluaciones
+│   ├── Leccion.php                        # Lecciones pedagógicas
+│   ├── Pais.php                           # Geografía cascada
+│   ├── ProgresoLeccion.php                # Estado y porcentaje de avance
+│   ├── Provincia.php                      # Geografía cascada
+│   ├── TipoAcorde.php                     # Fórmulas de acordes
+│   └── User.php                           # Usuarios con roles, cédula y ubicación
+├── Rules/
+│   ├── ValidEcuadorianCedula.php          # Validación sensible Back-End: Módulo 10
+│   └── ValidIntervalStructure.php         # Validación sensible Back-End: Intervalos
+└── Services/
+    ├── AcordeService.php                  # Cálculo armónico modular y frecuencias
+    └── RecomendacionService.php           # Analítica y recomendaciones adaptativas
 ```
 
-La primera ejecución tarda un poco porque Docker descarga PHP e instala las dependencias. Las siguientes ejecuciones son más rápidas.
+---
 
-### Opción manual con PHP y Composer
+## 🔑 Usuarios de Demostración
 
-1. Instala PHP 8.2+, Composer y las extensiones `pdo_sqlite`, `mbstring`, `openssl`, `tokenizer` y `xml`.
-2. Clona el repositorio y entra en su carpeta.
-3. Ejecuta:
+El seeder del sistema (`php artisan db:seed`) incluye tres perfiles precargados:
 
-```bash
-composer install
-cp .env.example .env
-php artisan key:generate
-```
+| Rol | Correo Electrónico | Contraseña | Cédula Validada | Propósito |
+| :--- | :--- | :--- | :--- | :--- |
+| **Administrador** | `admin@armonialab.test` | `password` | `1710034065` (Pichincha) | Acceso al panel administrativo, validación de cédulas y dropdowns |
+| **Docente** | `demo@armonialab.test` | `password` | `0915284392` (Guayas) | Gestión de cursos y revisión de lecciones |
+| **Estudiante** | `estudiante@armonialab.test` | `password` | `0102030408` (Azuay) | Cuenta con intentos previos para ver el diagnóstico y recomendaciones |
 
-En Windows PowerShell, reemplaza `cp` por `Copy-Item .env.example .env`.
+---
 
-4. Crea la base de datos y carga las tablas:
+## 💻 Instalación y Ejecución Local
 
-```powershell
-New-Item database/database.sqlite -ItemType File
-php artisan migrate --seed
-php artisan serve
-```
+### Requisitos
+- PHP 8.2 o superior con extensiones `pdo_sqlite`, `mbstring`, `openssl`, `tokenizer`, `xml` y `curl`.
+- Composer 2.x
 
-Abre `http://127.0.0.1:8000`.
+### Pasos de Instalación
 
-## Usuario de demostración
+1. Clonar el repositorio y situarse en la rama de entrega:
+   ```bash
+   git clone <URL_DEL_REPOSITORIO>
+   cd ProyectoFinal
+   git switch main
+   ```
 
-- Correo: `demo@armonialab.test`
-- Contraseña: `password`
+2. Instalar dependencias:
+   ```bash
+   composer install
+   ```
 
-Esta cuenta solo debe usarse localmente durante la exposición.
+3. Configurar el entorno:
+   ```bash
+   # En Linux / Mac / Git Bash:
+   cp .env.example .env
 
-## Demostración
+   # En Windows PowerShell:
+   Copy-Item .env.example .env
 
-La aplicación permite registrarse o iniciar sesión para acceder a la administración de cursos. Dentro de la sección protegida, cada usuario puede:
+   php artisan key:generate
+   ```
 
-1. Crear un curso musical.
-2. Consultar sus cursos.
-3. Editar la información de un curso.
-4. Eliminar un curso.
-5. Cerrar la sesión de forma segura.
+4. Crear la base de datos y cargar las migraciones con datos iniciales:
+   ```bash
+   # En Windows PowerShell:
+   New-Item database/database.sqlite -ItemType File -Force
 
-Si una persona intenta abrir `/cursos` sin iniciar sesión, Laravel la redirige automáticamente al formulario de acceso.
+   # En Linux / Mac:
+   touch database/database.sqlite
 
-## Cómo comprobar la protección
+   php artisan migrate --seed
+   ```
 
-1. Cierra la sesión.
-2. Escribe directamente `http://127.0.0.1:8000/cursos`.
-3. Laravel debe redirigirte a `/login`.
-4. Inicia sesión y vuelve a `/cursos`; ahora la página sí será visible.
-5. Ejecuta `php artisan test` para comprobarlo automáticamente.
+5. Iniciar el servidor local:
+   ```bash
+   php artisan serve
+   ```
+   Abrir en el navegador: `http://127.0.0.1:8000`
 
-## Arquitectura MVC
+---
 
-- **Modelo:** `app/Models/Course.php` representa los cursos y su relación con el usuario.
-- **Vista:** `resources/views/courses/` contiene las pantallas Blade.
-- **Controlador:** `CourseController` coordina las peticiones del CRUD.
-- **Validación:** `CourseRequest` valida los datos antes de guardarlos.
-- **Rutas:** `routes/web.php` agrupa el CRUD dentro del middleware `auth`.
+## 🧪 Batería de Pruebas Automáticas
 
-Flujo: navegador → ruta → middleware → controlador → modelo → base de datos → vista.
-
-## Rutas principales
-
-| Método | URL | Acción | Protegida |
-| --- | --- | --- | --- |
-| GET | `/login` | Formulario de ingreso | No |
-| POST | `/login` | Autenticar | No |
-| POST | `/logout` | Cerrar sesión | Sí |
-| GET | `/cursos` | Listar cursos | Sí |
-| GET | `/cursos/create` | Formulario de creación | Sí |
-| POST | `/cursos` | Guardar curso | Sí |
-| GET | `/cursos/{course}` | Ver curso | Sí |
-| GET | `/cursos/{course}/edit` | Formulario de edición | Sí |
-| PUT | `/cursos/{course}` | Actualizar curso | Sí |
-| DELETE | `/cursos/{course}` | Eliminar curso | Sí |
-
-## Pruebas
+El proyecto cuenta con **27 pruebas automáticas** que cubren los requerimientos y reglas de negocio implementados:
 
 ```bash
 php artisan test
 ```
 
-Las pruebas verifican la redirección de visitantes, login, logout, creación, actualización, eliminación y bloqueo de cursos ajenos.
+### Resumen de Suites de Pruebas:
+- `MusicalCoreTest`: Comprueba los criterios 1, 2, 3 y 4 del documento de análisis (Do Mayor, Do Menor, Séptima dominante, validación de parámetros y biblioteca personal).
+- `BackendValidationTest`: Verifica la aceptación de cédulas ecuatorianas válidas por Módulo 10 y el rechazo estricto en el servidor de cédulas manipuladas, códigos de provincia fuera de rango y fórmulas musicales inconsistentes.
+- `CascadingDropdownsTest`: Verifica que los endpoints de geografía y cursos retornen exclusivamente los hijos de la entidad seleccionada y rechace en el Back-End la asignación de claves foráneas no pertenecientes al padre.
+- `EjercicioAutocorrectionTest`: Evalúa que el motor de autocorrección asigne puntajes, registre intentos en base de datos y active recomendaciones personalizadas ante fallos.
+- `AuthenticationTest` y `CourseCrudTest`: Verifican la seguridad por middleware, sesión y control de acceso propietario.
 
-## Publicar en GitHub
+---
 
-La plantilla oficial se conserva como remoto `laravel-template`. Crea un repositorio vacío en tu cuenta y reemplaza `TU_USUARIO`:
+## 🌐 Guía de Despliegue en un Servidor (Fuera de Localhost)
+
+Para cumplir con el requerimiento de tener la aplicación **deployada en un servidor en la nube y no en localhost**, el proyecto incluye configuración lista para despliegue automatizado.
+
+### Opción A: Despliegue Gratuito en Render.com (Recomendado)
+
+Render permite alojar servicios web basados en Docker o PHP de manera gratuita con HTTPS automático:
+
+1. Crea una cuenta gratuita en [Render.com](https://render.com).
+2. Conecta tu cuenta de GitHub o GitLab.
+3. En el Dashboard de Render, presiona **New +** y selecciona **Blueprint**.
+4. Selecciona tu repositorio de `ArmoniaLab`.
+5. Render detectará automáticamente el archivo `render.yaml` incluido en la raíz del proyecto.
+6. En caso de preferir desplegarlo como **Web Service** estándar:
+   - **Environment:** `Docker`
+   - **Branch:** `main`
+   - **Plan:** Free
+   - **Environment Variables:**
+     - `APP_ENV` = `production`
+     - `APP_DEBUG` = `false`
+     - `APP_KEY` = Ejecuta `php artisan key:generate --show` y copia el valor
+     - `DB_CONNECTION` = `sqlite`
+7. Presiona **Create Web Service**. Render compilará el `Dockerfile`, ejecutará las migraciones y sembradores mediante `docker/start.sh` y publicará la aplicación en una URL pública (ejemplo: `https://armonialab.onrender.com`).
+
+### Opción B: Despliegue en Railway.app
+
+1. Entra a [Railway.app](https://railway.app).
+2. Selecciona **New Project → Deploy from GitHub repo**.
+3. Selecciona el repositorio de ArmoníaLab.
+4. Railway detectará el `Dockerfile` automáticamente.
+5. En la pestaña **Variables**, agrega `APP_KEY` con tu clave de Laravel.
+6. En **Settings → Networking**, genera un dominio público (ej: `armonialab.up.railway.app`).
+
+### Opción C: Despliegue en VPS (Ubuntu 22.04 / 24.04 con Docker o Nginx)
+
+Si se dispone de un servidor VPS (AWS EC2, DigitalOcean, Hetzner, etc.):
 
 ```bash
-git add .
-git commit -m "Implementar login y CRUD de cursos"
-git remote add origin https://github.com/TU_USUARIO/armonialab.git
-git push -u origin 11.x
+# 1. Clonar el proyecto en el servidor
+git clone <URL_DEL_REPOSITORIO> /var/www/armonialab
+cd /var/www/armonialab
+
+# 2. Levantar con Docker Compose
+docker compose up -d --build
+```
+El servidor quedará operativo en el puerto configurado o detrás de un Reverse Proxy con Nginx y Certbot para certificado SSL Let's Encrypt.
+
+---
+
+## 🌿 Control de Versiones en Git
+
+El código del proyecto está versionado en Git. El avance fue desarrollado inicialmente en una rama de funcionalidad y después integrado y verificado en la rama principal:
+
+```bash
+main
 ```
 
-Si prefieres entregar una rama llamada `main`, ejecuta `git branch -M main` antes del último comando y cambia `11.x` por `main`.
+Para obtener la versión evaluada más reciente:
 
-## Alcance siguiente
+```bash
+git switch main
+git pull origin main
+git push origin main
+```
 
-La propuesta completa contempla roles, lecciones, ejercicios, progreso y un analizador armónico. No forman parte de este primer incremento. Se recomienda agregarlos en entregas pequeñas después de validar este CRUD y la autenticación.
+---
 
-## Exposición
+## 📜 Licencia y Uso
 
-El guion, las preguntas frecuentes, la lista de comprobación y un espacio de notas están en [`docs/NOTAS_EXPOSICION.md`](docs/NOTAS_EXPOSICION.md).
-
-## Integrantes
-
-- **Integrante A:** completar nombre, responsabilidad y usuario de GitHub.
-- **Integrante B:** completar nombre, responsabilidad y usuario de GitHub.
-
-Antes de entregar el proyecto, reemplacen estos espacios con los nombres reales de ambos integrantes.
-
-## Licencia
-
-Proyecto académico de Ingeniería Web. Uso educativo.
+Proyecto académico desarrollado para la materia de **Ingeniería Web** de la Universidad de Las Américas (UDLA). Uso educativo y demostrativo.

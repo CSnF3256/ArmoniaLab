@@ -7,6 +7,9 @@ fi
 
 php artisan key:generate --force
 touch database/database.sqlite
-php artisan migrate:fresh --seed --force
+php artisan migrate --force
+php artisan db:seed --force
 
-exec php artisan serve --host=0.0.0.0 --port=8000
+PORT_TO_USE="${PORT:-8000}"
+echo "Iniciando servidor ArmoníaLab en puerto ${PORT_TO_USE}..."
+exec php artisan serve --host=0.0.0.0 --port="${PORT_TO_USE}"

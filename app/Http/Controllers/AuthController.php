@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Rules\ValidEcuadorianCedula;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,22 +44,29 @@ class AuthController extends Controller
     public function register(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users'],
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
+            'role'     => ['required', 'string', 'in:estudiante,docente,admin'],
+            'cedula'   => ['nullable', 'string', 'unique:users,cedula', new ValidEcuadorianCedula()],
             'password' => ['required', 'confirmed', 'min:8'],
+        ], [
+            'cedula.unique' => 'Esta cédula ya se encuentra registrada.',
+            'role.in'       => 'El rol seleccionado no es válido.',
         ]);
 
         $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'cedula'   => $data['cedula'] ?? null,
+            'role'     => $data['role'],
             'password' => Hash::make($data['password']),
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('cursos.index')
-            ->with('success', 'Cuenta creada correctamente.');
+        return redirect()->route('acordes.index')
+            ->with('success', 'Cuenta creada correctamente. ¡Bienvenido a ArmoníaLab!');
     }
 
     public function logout(Request $request): RedirectResponse
