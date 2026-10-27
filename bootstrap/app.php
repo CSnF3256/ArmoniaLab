@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Render termina HTTPS en su proxy y comunica el protocolo original
+        // mediante X-Forwarded-Proto. Al confiar en el proxy, Laravel genera
+        // formularios y redirecciones https:// en lugar de http://.
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);
