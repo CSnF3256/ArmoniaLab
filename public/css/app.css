@@ -39,6 +39,9 @@ body {
 .site-header {
     background: var(--white);
     border-bottom: 1px solid var(--line);
+    padding: 0.75rem 0;
+    display: flex;
+    align-items: center;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -58,16 +61,22 @@ body {
 }
 
 .nav {
-    min-height: 72px;
+    display: flex;
     justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    min-height: 60px;
 }
 
 .brand-group {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 1rem;
 }
 
 .brand {
@@ -97,9 +106,12 @@ body {
 }
 
 .nav-links {
+    display: flex;
+    align-items: center;
     gap: 1rem;
     font-weight: 600;
     font-size: 0.94rem;
+    margin-bottom: 0 !important;
 }
 
 .nav-links a {
@@ -1362,6 +1374,8 @@ select:disabled {
     margin-right: 0.3rem;
 }
 
+
+
 /* Footer */
 .site-footer {
     border-top: 1px solid var(--line);
@@ -1398,4 +1412,162 @@ select:disabled {
     .nav-links {
         flex-wrap: wrap;
     }
+}
+
+
+/* ==========================================================================
+   ESTILOS PARA PRÁCTICA INTELIGENTE SUGERIDA (CLEAN ARCHITECTURE)
+   ========================================================================== */
+.smart-practice-card {
+    background: var(--purple-dark) !important;
+    color: var(--white) !important;
+    margin-bottom: 2rem !important; /* Separación correcta abajo para que no choque con los filtros */
+    border: none !important;
+    border-radius: 16px;
+    padding: 2rem;
+}
+
+.smart-practice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.smart-badge-top {
+    background: var(--gold);
+    color: #451a03 !important;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 0.25rem 0.8rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+.smart-desc {
+    color: #f3e8ff !important;
+    margin: 0;
+    font-size: 1.02rem;
+    max-width: 650px;
+}
+
+.smart-precision-box {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    text-align: right;
+}
+
+.precision-title {
+    font-size: 0.75rem;
+    color: #ded6ea !important;
+    display: block;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.precision-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #fde68a !important;
+}
+
+.smart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.smart-item-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.smart-category {
+    font-size: 0.75rem;
+    color: #c4b5fd !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 0.4rem;
+}
+
+.smart-title {
+    color: var(--white) !important;
+    font-size: 1.05rem;
+    margin: 0 0 0.5rem 0 !important;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+.smart-sub {
+    font-size: 0.85rem;
+    color: #e9d5ff !important;
+    margin: 0 !important;
+    font-weight: 500;
+}
+
+.smart-btn {
+    margin-top: auto;
+    background: var(--purple-light) !important;
+    border-color: var(--purple-light) !important;
+    text-align: center;
+    color: var(--white) !important;
+}
+
+.smart-btn:hover {
+    background: var(--purple) !important;
+}
+
+
+.recommendation-hero-card {
+    background: linear-gradient(135deg, #2b174b 0%, #432273 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 2rem;
+    margin-top: -1rem !important;
+    margin-bottom: 2rem !important;
+}
+
+.recommendation-hero-card h4,
+.rec-chip-card h4 {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    margin-top: 0.4rem !important;
+    margin-bottom: 0.6rem !important;
+    line-height: 1.4 !important;
+}
+
+.recommendation-hero-card .rec-reason,
+.rec-chip-card .rec-reason {
+    color: #e9d5ff !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.5rem !important;
+    line-height: 1.4 !important;
+}
+
+/* Asegurar buen espaciado y fondo translúcido en las tarjetas internas */
+.rec-chip-card {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 14px;
+    padding: 1.5rem !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.2rem !important;
 }

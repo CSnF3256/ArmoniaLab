@@ -14,7 +14,13 @@
         <input id="password" name="password" type="password" required>
         @error('password') <p class="error">{{ $message }}</p> @enderror
 
-        <label class="check"><input name="remember" type="checkbox"> Recordarme</label>
+        <div style="margin: 1rem 0; display: flex; align-items: center;">
+            <label for="remember_me" style="display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input id="remember_me" type="checkbox" name="remember" style="width: 1.1rem; height: 1.1rem; accent-color: var(--purple); cursor: pointer;">
+                <span style="font-size: 0.9rem; font-weight: 500; color: var(--ink);">Recordarme</span>
+            </label>
+        </div>
+
         <button class="button full" type="submit">Ingresar</button>
     </form>
     <p class="form-footer">¿No tienes cuenta? <a href="{{ route('register') }}">Regístrate</a>.</p>
