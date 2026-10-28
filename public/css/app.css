@@ -1544,7 +1544,7 @@ select:disabled {
 }
 
 .recommendation-hero-card h4,
-.rec-chip-card h4 {
+.recommendation-hero-card .rec-chip-card h4 {
     color: #ffffff !important;
     font-weight: 700 !important;
     margin-top: 0.4rem !important;
@@ -1552,8 +1552,7 @@ select:disabled {
     line-height: 1.4 !important;
 }
 
-.recommendation-hero-card .rec-reason,
-.rec-chip-card .rec-reason {
+.recommendation-hero-card .rec-reason {
     color: #e9d5ff !important;
     font-weight: 500 !important;
     margin-bottom: 0.5rem !important;
@@ -1570,4 +1569,19 @@ select:disabled {
     flex-direction: column;
     justify-content: space-between;
     gap: 1.2rem !important;
+}
+
+/* Las recomendaciones de Mi Progreso usan tarjetas claras. */
+.rec-chip-card.highlight {
+    background: var(--white) !important;
+    color: var(--ink) !important;
+    border: 1.5px solid var(--line) !important;
+}
+
+.rec-chip-card.highlight h4 {
+    color: var(--ink) !important;
+}
+
+.rec-chip-card.highlight .rec-reason {
+    color: var(--muted) !important;
 }
