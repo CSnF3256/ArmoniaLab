@@ -1301,10 +1301,31 @@ select:disabled {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
     gap: 1.5rem;
+    margin-top: 1.75rem;
+    margin-bottom: 1.75rem;
 }
 
 .admin-module-card {
     border-top: 4px solid var(--purple);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.admin-module-card h3,
+.admin-module-card p {
+    margin: 0;
+}
+
+.admin-module-card p {
+    flex: 1;
+}
+
+.module-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding-top: 0.5rem;
 }
 
 .module-icon {
