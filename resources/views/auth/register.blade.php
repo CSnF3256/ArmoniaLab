@@ -16,13 +16,10 @@
         <input id="email" name="email" type="email" value="{{ old('email') }}" required placeholder="tucorreo@ejemplo.com">
         @error('email') <p class="error">{{ $message }}</p> @enderror
 
-        <label for="role">Rol de usuario *</label>
-        <select id="role" name="role" required>
-            <option value="estudiante" {{ old('role', 'estudiante') === 'estudiante' ? 'selected' : '' }}>🎓 Estudiante</option>
-            <option value="docente" {{ old('role') === 'docente' ? 'selected' : '' }}>👨‍🏫 Docente</option>
-            <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>⚙️ Administrador</option>
-        </select>
-        @error('role') <p class="error">{{ $message }}</p> @enderror
+        <div class="sensitive-box mt-3">
+            <strong>🎓 Cuenta de estudiante</strong>
+            <span class="text-sm text-muted">Las cuentas docentes y administrativas son asignadas de forma segura por un administrador.</span>
+        </div>
 
         <div class="sensitive-box mt-3 mb-2">
             <label for="cedula">Cédula Ecuatoriana (Dato Sensible Opcional)</label>

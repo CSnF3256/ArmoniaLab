@@ -12,7 +12,7 @@ class CourseController extends Controller
 {
     public function index(Request $request): View
     {
-        $courses = $request->user()->courses()->latest()->get();
+        $courses = Course::with('user')->latest()->get();
 
         return view('courses.index', compact('courses'));
     }
@@ -32,21 +32,19 @@ class CourseController extends Controller
 
     public function show(Request $request, Course $course): View
     {
-        $this->ensureOwner($request, $course);
-
         return view('courses.show', compact('course'));
     }
 
     public function edit(Request $request, Course $course): View
     {
-        $this->ensureOwner($request, $course);
+        $this->ensureCanManage($request, $course);
 
         return view('courses.edit', compact('course'));
     }
 
     public function update(CourseRequest $request, Course $course): RedirectResponse
     {
-        $this->ensureOwner($request, $course);
+        $this->ensureCanManage($request, $course);
         $course->update($request->validated());
 
         return redirect()->route('cursos.index')
@@ -55,15 +53,17 @@ class CourseController extends Controller
 
     public function destroy(Request $request, Course $course): RedirectResponse
     {
-        $this->ensureOwner($request, $course);
+        $this->ensureCanManage($request, $course);
         $course->delete();
 
         return redirect()->route('cursos.index')
             ->with('success', 'Curso eliminado correctamente.');
     }
 
-    private function ensureOwner(Request $request, Course $course): void
+    private function ensureCanManage(Request $request, Course $course): void
     {
-        abort_unless($course->user_id === $request->user()->id, 403);
+        $user = $request->user();
+
+        abort_unless($user->isAdmin() || ($user->isDocente() && $course->user_id === $user->id), 403);
     }
 }

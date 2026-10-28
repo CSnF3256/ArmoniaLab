@@ -25,7 +25,9 @@
                 @auth
                     <a href="{{ route('acordes.biblioteca') }}" class="{{ request()->routeIs('acordes.biblioteca') ? 'active' : '' }}">📚 Biblioteca</a>
                     <a href="{{ route('ejercicios.index') }}" class="{{ request()->routeIs('ejercicios.*') ? 'active' : '' }}">✍️ Ejercicios</a>
-                    <a href="{{ route('progreso.index') }}" class="{{ request()->routeIs('progreso.*') ? 'active' : '' }}">📊 Mi Progreso</a>
+                    @if(auth()->user()->isEstudiante())
+                        <a href="{{ route('progreso.index') }}" class="{{ request()->routeIs('progreso.*') ? 'active' : '' }}">📊 Mi Progreso</a>
+                    @endif
                     <a href="{{ route('cursos.index') }}" class="{{ request()->routeIs('cursos.*') ? 'active' : '' }}">🎓 Cursos</a>
 
                     @if(auth()->user()->isAdmin() || auth()->user()->isDocente())

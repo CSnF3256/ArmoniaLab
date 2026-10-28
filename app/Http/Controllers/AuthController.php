@@ -46,19 +46,17 @@ class AuthController extends Controller
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
-            'role'     => ['required', 'string', 'in:estudiante,docente,admin'],
             'cedula'   => ['nullable', 'string', 'unique:users,cedula', new ValidEcuadorianCedula()],
             'password' => ['required', 'confirmed', 'min:8'],
         ], [
             'cedula.unique' => 'Esta cédula ya se encuentra registrada.',
-            'role.in'       => 'El rol seleccionado no es válido.',
         ]);
 
         $user = User::create([
             'name'     => $data['name'],
             'email'    => $data['email'],
             'cedula'   => $data['cedula'] ?? null,
-            'role'     => $data['role'],
+            'role'     => 'estudiante',
             'password' => Hash::make($data['password']),
         ]);
 

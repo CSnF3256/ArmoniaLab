@@ -38,8 +38,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/acordes/biblioteca', [AcordeController::class, 'biblioteca'])->name('acordes.biblioteca');
     Route::delete('/acordes/biblioteca/{acorde}', [AcordeController::class, 'destroy'])->name('acordes.destroy');
 
-    // Módulo de Cursos (existente)
-    Route::resource('cursos', CourseController::class)->parameters(['cursos' => 'course']);
+    // Catálogo de cursos visible para cualquier usuario autenticado.
+    Route::get('/cursos', [CourseController::class, 'index'])->name('cursos.index');
+    Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('cursos.show');
+
+    // Solo docentes y administradores pueden modificar cursos.
+    Route::middleware('teacher')->group(function () {
+        Route::get('/cursos/crear/nuevo', [CourseController::class, 'create'])->name('cursos.create');
+        Route::post('/cursos', [CourseController::class, 'store'])->name('cursos.store');
+        Route::get('/cursos/{course}/editar', [CourseController::class, 'edit'])->name('cursos.edit');
+        Route::put('/cursos/{course}', [CourseController::class, 'update'])->name('cursos.update');
+        Route::patch('/cursos/{course}', [CourseController::class, 'update']);
+        Route::delete('/cursos/{course}', [CourseController::class, 'destroy'])->name('cursos.destroy');
+    });
 
     // Módulo de Ejercicios con Corrección Automática
     Route::get('/ejercicios', [EjercicioController::class, 'index'])->name('ejercicios.index');
@@ -47,7 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/ejercicios/{ejercicio}/responder', [EjercicioController::class, 'responder'])->name('ejercicios.responder');
 
     // Módulo de Progreso por Habilidad y Recomendaciones Personalizadas
-    Route::get('/progreso', [ProgresoController::class, 'index'])->name('progreso.index');
+    Route::get('/progreso', [ProgresoController::class, 'index'])->middleware('student')->name('progreso.index');
 
     // API para Dropdowns Dependientes (en cascada)
     Route::get('/api/paises/{pais}/provincias', [GeoController::class, 'provincias'])->name('api.geo.provincias');
@@ -55,12 +66,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/cursos/{course}/lecciones', [GeoController::class, 'leccionesDeCurso'])->name('api.geo.lecciones');
 });
 
-// 3. Panel de Administración (Protegido por auth y rol admin/docente)
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+// 3. Administración académica para docentes y administradores.
+Route::middleware(['auth', 'teacher'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Gestión de Usuarios con Validación de Cédula (Back-End) y Dropdowns Dependientes
-    Route::resource('usuarios', AdminUserController::class)->except(['show']);
+    // Los datos sensibles y roles de usuarios pertenecen solo al administrador.
+    Route::resource('usuarios', AdminUserController::class)->except(['show'])->middleware('admin');
 
     // Creación y Gestión de Ejercicios con Dropdowns Dependientes Curso -> Lección
     Route::resource('ejercicios', AdminEjercicioController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);

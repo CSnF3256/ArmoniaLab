@@ -8,12 +8,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserIsAdmin
 {
-    /**
-     * Asegura que el usuario autenticado posea el rol de administrador o docente.
-     */
+    /** Asegura que solo un administrador pueda continuar. */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! auth()->check() || (! auth()->user()->isAdmin() && ! auth()->user()->isDocente())) {
+        if (! $request->user()?->isAdmin()) {
             abort(403, 'Acceso restringido. Esta sección requiere privilegios de administrador.');
         }
 

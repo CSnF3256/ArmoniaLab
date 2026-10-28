@@ -197,6 +197,21 @@ El seeder del sistema (`php artisan db:seed`) incluye tres perfiles precargados:
 | **Docente** | `demo@armonialab.test` | `password` | `0915284392` (Guayas) | Gestión de cursos y revisión de lecciones |
 | **Estudiante** | `estudiante@armonialab.test` | `password` | `0102030408` (Azuay) | Cuenta con intentos previos para ver el diagnóstico y recomendaciones |
 
+### Permisos por rol
+
+La autorización se valida en el Back-End mediante middleware; no depende únicamente de ocultar botones en las vistas.
+
+| Función | Estudiante | Docente | Administrador |
+|---|:---:|:---:|:---:|
+| Ver el catálogo de cursos | Sí | Sí | Sí |
+| Crear y administrar cursos | No | Sí (propios) | Sí (todos) |
+| Resolver ejercicios | Sí | Sí | Sí |
+| Consultar Mi Progreso | Sí | No | No |
+| Administrar ejercicios y tipos de acordes | No | Sí | Sí |
+| Administrar usuarios y datos sensibles | No | No | Sí |
+
+El registro público siempre crea una cuenta de estudiante. Los roles de docente y administrador solamente pueden ser asignados por un administrador.
+
 ---
 
 ## 💻 Instalación y Ejecución Local

@@ -27,7 +27,9 @@ class AdminDashboardController extends Controller
                 : 0,
         ];
 
-        $ultimosUsuarios = User::with(['pais', 'provincia', 'ciudad'])->latest()->take(5)->get();
+        $ultimosUsuarios = auth()->user()->isAdmin()
+            ? User::with(['pais', 'provincia', 'ciudad'])->latest()->take(5)->get()
+            : collect();
         $ultimosIntentos = Intento::with(['user', 'ejercicio'])->latest()->take(8)->get();
 
         return view('admin.dashboard', [

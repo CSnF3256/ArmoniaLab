@@ -10,9 +10,9 @@ class CourseCrudTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_authenticated_user_can_create_a_course(): void
+    public function test_teacher_can_create_a_course(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'docente']);
         $this->actingAs($user)->post('/cursos', [
             'title' => 'Teoría musical básica',
             'description' => 'Notas, intervalos y construcción de acordes.',
@@ -25,8 +25,8 @@ class CourseCrudTest extends TestCase
 
     public function test_user_cannot_edit_another_users_course(): void
     {
-        $owner = User::factory()->create();
-        $visitor = User::factory()->create();
+        $owner = User::factory()->create(['role' => 'docente']);
+        $visitor = User::factory()->create(['role' => 'docente']);
         $course = $owner->courses()->create([
             'title' => 'Curso privado',
             'description' => 'Contenido del propietario.', 'level' => 'Intermedio', 'status' => 'Borrador',
@@ -37,7 +37,7 @@ class CourseCrudTest extends TestCase
 
     public function test_owner_can_update_and_delete_a_course(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'docente']);
         $course = $user->courses()->create([
             'title' => 'Nombre anterior',
             'description' => 'Descripción anterior.', 'level' => 'Principiante', 'status' => 'Borrador',
