@@ -1,60 +1,85 @@
 @extends('layouts.app')
 
-@section('title', 'Gestión de Ejercicios | Admin ArmoníaLab')
+@section('title', 'Ejercicios de Teoría Musical | ArmoníaLab')
 
 @section('content')
 <div class="page-heading">
     <div>
-        <span class="eyebrow">Panel de Administración</span>
-        <h1>Gestión de Ejercicios y Autocorrección</h1>
-        <p class="subtitle">Banco de preguntas interactivo con asignación jerárquica Curso → Lección y corrección en el servidor.</p>
+        <span class="eyebrow">Evaluación y Aprendizaje</span>
+        <h1>Ejercicios de Teoría Musical</h1>
+        <p class="subtitle">Práctica con corrección automática inmediata en el servidor, registro de intentos y progreso por habilidad.</p>
     </div>
     <div class="actions">
-        <a href="{{ route('admin.ejercicios.create') }}" class="button">➕ Crear Ejercicio con Cascada</a>
+        <a href="{{ route('progreso.index') }}" class="button secondary">📊 Ver Mi Progreso por Habilidad</a>
     </div>
 </div>
 
-<div class="card">
-    <div class="table-responsive">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Pregunta</th>
-                    <th>Curso / Lección</th>
-                    <th>Habilidad</th>
-                    <th>Dificultad</th>
-                    <th>Respuesta Correcta</th>
-                    <th>Puntos</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($ejercicios as $ej)
-                    <tr>
-                        <td><strong>{{ Str::limit($ej->pregunta, 50) }}</strong></td>
-                        <td>
-                            <div><strong>{{ $ej->leccion?->course?->title ?? 'Sin curso' }}</strong></div>
-                            <span class="text-sm text-muted">↳ {{ $ej->leccion?->titulo ?? 'Sin lección' }}</span>
-                        </td>
-                        <td><span class="badge-skill small">{{ $ej->habilidad }}</span></td>
-                        <td><span class="badge-difficulty {{ strtolower($ej->dificultad) }}">{{ $ej->dificultad }}</span></td>
-                        <td><code class="correct-text">{{ $ej->respuesta_correcta }}</code></td>
-                        <td>{{ $ej->puntos }} pts</td>
-                        <td>
-                            <form method="POST" action="{{ route('admin.ejercicios.destroy', $ej) }}" class="inline-form" onsubmit="return confirm('¿Eliminar este ejercicio?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="button small danger">Eliminar</button>
-                            </form>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+<!-- Sección de Práctica Inteligente Sugerida -->
+<div class="card smart-practice-card">
+    <div class="smart-practice-header">
+        <div>
+            <span class="smart-badge-top">🚀 Práctica Inteligente Sugerida</span>
+            <p class="smart-desc">Aún no has resuelto ejercicios. Comienza con una práctica guiada para evaluar tu nivel armónico.</p>
+        </div>
+        <div class="smart-precision-box">
+            <span class="precision-title">Precisión Global</span>
+            <span class="precision-value">0%</span>
+        </div>
     </div>
 
-    <div class="pagination-wrapper mt-4">
-        {{ $ejercicios->links() }}
+    <!-- Rejilla interna -->
+    <div class="smart-grid">
+        <!-- Tarjeta Sugerida 1 -->
+        <div class="smart-item-card">
+            <div>
+                <span class="smart-category">Tríadas Mayores</span>
+                <h4 class="smart-title">¿Cuáles son las notas integrantes de la tríada de Do Mayor (C)?</h4>
+                <p class="smart-sub">Evaluación diagnóstica inicial en Tríadas Mayores</p>
+            </div>
+            <a href="#" class="button small smart-btn">Resolver Ahora →</a>
+        </div>
+
+        <!-- Tarjeta Sugerida 2 -->
+        <div class="smart-item-card">
+            <div>
+                <span class="smart-category">Tríadas Mayores</span>
+                <h4 class="smart-title">¿Cuáles son las notas de la tríada de Fa Mayor (F)?</h4>
+                <p class="smart-sub">Evaluación diagnóstica inicial en Tríadas Mayores</p>
+            </div>
+            <a href="#" class="button small smart-btn">Resolver Ahora →</a>
+        </div>
+
+        <!-- Tarjeta Sugerida 3 -->
+        <div class="smart-item-card">
+            <div>
+                <span class="smart-category">Tríadas Menores</span>
+                <h4 class="smart-title">¿Cuáles son las notas integrantes del acorde de La menor (Am)?</h4>
+                <p class="smart-sub">Evaluación diagnóstica inicial en Tríadas Menores</p>
+            </div>
+            <a href="#" class="button small smart-btn">Resolver Ahora →</a>
+        </div>
     </div>
+</div>
+
+<!-- Listado general de ejercicios -->
+<div class="exercises-grid">
+    @foreach($ejercicios ?? [] as $ej)
+        <div class="card exercise-card">
+            <div>
+                <div class="exercise-card-header">
+                    <span class="badge-skill">{{ $ej->habilidad }}</span>
+                    <span class="badge-difficulty {{ strtolower($ej->dificultad) }}">{{ $ej->dificultad }}</span>
+                </div>
+                <h3 class="exercise-question">{{ $ej->pregunta }}</h3>
+            </div>
+            <div>
+                <div class="exercise-meta">
+                    <span>📚 {{ $ej->leccion?->titulo ?? 'Práctica general' }}</span>
+                    <span>🏆 {{ $ej->puntos }} pts</span>
+                </div>
+                <a href="{{ route('ejercicios.show', $ej) }}" class="button small full-width">Comenzar Ejercicio →</a>
+            </div>
+        </div>
+    @endforeach
 </div>
 @endsection
