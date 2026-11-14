@@ -212,6 +212,30 @@ La autorización se valida en el Back-End mediante middleware; no depende única
 
 El registro público siempre crea una cuenta de estudiante. Los roles de docente y administrador solamente pueden ser asignados por un administrador.
 
+### Controles de seguridad
+
+La aplicación aplica controles en el servidor, además de las restricciones visibles en la interfaz:
+
+| Control | Implementación | Riesgo mitigado |
+| :--- | :--- | :--- |
+| Límite de inicio de sesión | Máximo 5 intentos fallidos por combinación de correo e IP durante 60 segundos | Ataques automatizados de fuerza bruta |
+| Mensaje de credenciales genérico | No confirma si el correo o la contraseña fue el dato incorrecto | Enumeración de cuentas |
+| Regeneración de sesión | La sesión cambia después de autenticar y se invalida al cerrar sesión | Fijación y reutilización de sesión |
+| Middleware por rol | `student`, `teacher` y `admin` protegen las rutas antes de llegar al controlador | Acceso directo por URL sin autorización |
+| Registro público restringido | Toda cuenta pública se crea con rol `estudiante` | Autoasignación de privilegios administrativos |
+| Serialización protegida | `password`, `remember_token` y `cedula` están ocultos en el modelo `User` | Exposición accidental de credenciales o datos sensibles en JSON |
+| Validación Back-End | Cédula, relaciones y fórmulas musicales se validan antes de persistir | Manipulación del formulario y datos inconsistentes |
+
+El límite de login utiliza `RateLimiter` de Laravel. Al superar cinco fallos, incluso una contraseña correcta se rechaza temporalmente. Un inicio de sesión válido limpia el contador correspondiente.
+
+Las pruebas automatizadas verifican tanto navegación como intentos de escritura. Por ejemplo, un estudiante recibe `403` al intentar enviar directamente formularios administrativos, aunque conozca la URL.
+
+```bash
+php artisan test --filter=AuthenticationTest
+php artisan test --filter=RoleAuthorizationTest
+php artisan test --filter=SensitiveDataExposureTest
+```
+
 ---
 
 ## 💻 Instalación y Ejecución Local

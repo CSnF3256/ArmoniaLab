@@ -10,6 +10,11 @@ class RoleAuthorizationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_guest_is_redirected_from_administration(): void
+    {
+        $this->get(route('admin.dashboard'))->assertRedirect(route('login'));
+    }
+
     public function test_student_can_view_courses_but_cannot_create_them(): void
     {
         $student = User::factory()->create(['role' => 'estudiante']);
@@ -43,7 +48,32 @@ class RoleAuthorizationTest extends TestCase
 
         $this->actingAs($teacher)->get(route('admin.dashboard'))->assertOk();
         $this->actingAs($teacher)->get(route('admin.ejercicios.index'))->assertOk();
+        $this->actingAs($teacher)->get(route('admin.tipos-acordes.index'))->assertOk();
         $this->actingAs($teacher)->get(route('admin.usuarios.index'))->assertForbidden();
+        $this->actingAs($teacher)->post(route('admin.usuarios.store'), [])->assertForbidden();
+    }
+
+    public function test_student_cannot_access_or_modify_administration(): void
+    {
+        $student = User::factory()->create(['role' => 'estudiante']);
+
+        $this->actingAs($student)->get(route('admin.dashboard'))->assertForbidden();
+        $this->actingAs($student)->get(route('admin.ejercicios.index'))->assertForbidden();
+        $this->actingAs($student)->get(route('admin.tipos-acordes.index'))->assertForbidden();
+        $this->actingAs($student)->get(route('admin.usuarios.index'))->assertForbidden();
+        $this->actingAs($student)->post(route('admin.ejercicios.store'), [])->assertForbidden();
+        $this->actingAs($student)->post(route('admin.tipos-acordes.store'), [])->assertForbidden();
+
+        $this->assertDatabaseCount('ejercicios', 0);
+        $this->assertDatabaseCount('tipo_acordes', 0);
+    }
+
+    public function test_admin_can_access_user_management(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk();
+        $this->actingAs($admin)->get(route('admin.usuarios.index'))->assertOk();
     }
 
     public function test_admin_can_manage_any_course(): void
