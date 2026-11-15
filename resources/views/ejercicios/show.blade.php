@@ -15,6 +15,10 @@
             <div>
                 <span class="badge-skill">{{ $ejercicio->habilidad }}</span>
                 <span class="badge-difficulty {{ strtolower($ejercicio->dificultad) }}">{{ $ejercicio->dificultad }}</span>
+                @php $modalidadLabel = \App\Models\Ejercicio::modalidades()[$ejercicio->modalidad ?? 'clasica'] ?? 'Clásica'; @endphp
+                <span class="badge-skill" style="background:#e0e7ff;color:#3730a3;margin-left:.25rem;" title="Modalidad de presentación">
+                    🎓 {{ $modalidadLabel }}
+                </span>
             </div>
             <div class="exercise-points">
                 <span>Valor: <strong>{{ $ejercicio->puntos }} Puntos</strong></span>
@@ -29,23 +33,119 @@
             @csrf
             <input type="hidden" name="tiempo_segundos" id="tiempo_segundos" value="0">
 
-            <div class="options-container">
-                <label class="options-label">Selecciona tu respuesta:</label>
+            @php
+                $modalidad = $ejercicio->modalidad ?? 'clasica';
+                $opciones  = $ejercicio->datos_pregunta['opciones'] ?? [];
+                $pista     = $ejercicio->metadata['pista'] ?? null;
+                $tiempoLim = $ejercicio->metadata['tiempo_limite'] ?? 0;
+            @endphp
 
-                @php
-                    $opciones = $ejercicio->datos_pregunta['opciones'] ?? [];
-                @endphp
-
-                <div class="options-grid">
-                    @foreach($opciones as $opcion)
-                        <label class="option-card" for="opcion_{{ $loop->index }}">
-                            <input type="radio" id="opcion_{{ $loop->index }}" name="respuesta" value="{{ $opcion }}" required>
-                            <span class="option-indicator">{{ chr(65 + $loop->index) }}</span>
-                            <span class="option-text">{{ $opcion }}</span>
-                        </label>
-                    @endforeach
+            {{-- Pista contextual (si el admin la configuró) --}}
+            @if($pista)
+                <div class="exercise-hint-box mb-3" style="background:#fef9c3;border-left:4px solid #ca8a04;padding:.75rem 1rem;border-radius:6px;">
+                    💡 <strong>Pista:</strong> {{ $pista }}
                 </div>
-            </div>
+            @endif
+
+            {{-- Contador regresivo (si hay tiempo límite configurado) --}}
+            @if($tiempoLim > 0)
+                <div class="exercise-timer mb-3" id="timer-box" style="font-weight:600;color:#dc2626;">
+                    ⏱ Tiempo restante: <span id="timer-display">{{ $tiempoLim }}</span>s
+                </div>
+            @endif
+
+            {{-- ===== RENDERIZADO SEGÚN MODALIDAD ===== --}}
+
+            @if($modalidad === 'verdadero_falso')
+                {{-- Modalidad: Verdadero o Falso --}}
+                <div class="options-container">
+                    <label class="options-label">¿La afirmación es verdadera o falsa?</label>
+                    <div class="options-grid" style="grid-template-columns: repeat(2, 1fr);">
+                        @foreach(['Verdadero', 'Falso'] as $idx => $val)
+                            <label class="option-card" for="opcion_{{ $idx }}" style="font-size:1.1rem;justify-content:center;">
+                                <input type="radio" id="opcion_{{ $idx }}" name="respuesta" value="{{ $val }}" required>
+                                <span class="option-indicator">{{ $val === 'Verdadero' ? '✓' : '✗' }}</span>
+                                <span class="option-text">{{ $val }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+            @elseif($modalidad === 'ordenar_notas')
+                {{-- Modalidad: Ordenar notas (el estudiante escribe el orden correcto) --}}
+                <div class="options-container">
+                    <label class="options-label">Escribe las notas en el orden correcto (separadas por " - "):</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
+                        @foreach($opciones as $nota)
+                            <span class="badge-skill" style="cursor:default;">{{ $nota }}</span>
+                        @endforeach
+                    </div>
+                    <input type="text" name="respuesta" class="form-control" required
+                           placeholder="Ej: Do - Mi - Sol"
+                           style="width:100%;padding:.6rem 1rem;border:1px solid #d1d5db;border-radius:8px;font-size:1rem;">
+                    <p class="field-help text-sm text-muted mt-1">Separa las notas con " - " (espacio, guión, espacio).</p>
+                </div>
+
+            @elseif($modalidad === 'completar_secuencia')
+                {{-- Modalidad: Completar secuencia — elige la nota que falta --}}
+                <div class="options-container">
+                    <label class="options-label">Selecciona la nota que completa la secuencia:</label>
+                    <div class="options-grid">
+                        @foreach($opciones as $opcion)
+                            <label class="option-card" for="opcion_{{ $loop->index }}">
+                                <input type="radio" id="opcion_{{ $loop->index }}" name="respuesta" value="{{ $opcion }}" required>
+                                <span class="option-indicator">{{ chr(65 + $loop->index) }}</span>
+                                <span class="option-text">🎵 {{ $opcion }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+            @elseif($modalidad === 'seleccionar_intervalo')
+                {{-- Modalidad: Seleccionar intervalo — botones con semitonos --}}
+                <div class="options-container">
+                    <label class="options-label">Selecciona el intervalo correcto en semitonos:</label>
+                    <div class="options-grid" style="grid-template-columns: repeat(4, 1fr);">
+                        @foreach($opciones as $opcion)
+                            <label class="option-card" for="opcion_{{ $loop->index }}" style="text-align:center;flex-direction:column;gap:.25rem;">
+                                <input type="radio" id="opcion_{{ $loop->index }}" name="respuesta" value="{{ $opcion }}" required>
+                                <span class="option-indicator" style="font-size:1.5rem;">{{ $opcion }}</span>
+                                <span class="option-text text-sm">st</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+            @elseif($modalidad === 'detectar_error')
+                {{-- Modalidad: Detectar la nota errónea --}}
+                <div class="options-container">
+                    <label class="options-label">¿Cuál de estas notas <strong>NO</strong> pertenece al acorde?</label>
+                    <div class="options-grid">
+                        @foreach($opciones as $opcion)
+                            <label class="option-card" for="opcion_{{ $loop->index }}" style="border-color:#fca5a5;">
+                                <input type="radio" id="opcion_{{ $loop->index }}" name="respuesta" value="{{ $opcion }}" required>
+                                <span class="option-indicator" style="background:#fef2f2;color:#dc2626;">{{ chr(65 + $loop->index) }}</span>
+                                <span class="option-text">{{ $opcion }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+            @else
+                {{-- Modalidad por defecto: clasica (opción múltiple estándar) --}}
+                <div class="options-container">
+                    <label class="options-label">Selecciona tu respuesta:</label>
+                    <div class="options-grid">
+                        @foreach($opciones as $opcion)
+                            <label class="option-card" for="opcion_{{ $loop->index }}">
+                                <input type="radio" id="opcion_{{ $loop->index }}" name="respuesta" value="{{ $opcion }}" required>
+                                <span class="option-indicator">{{ chr(65 + $loop->index) }}</span>
+                                <span class="option-text">{{ $opcion }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
             <div class="form-actions mt-4">
                 <button type="submit" class="button full-width large">
@@ -125,6 +225,24 @@ setInterval(() => {
     segundos++;
     if (inputTiempo) inputTiempo.value = segundos;
 }, 1000);
+
+// Temporizador regresivo (si hay tiempo límite configurado)
+const timerBox = document.getElementById('timer-box');
+const timerDisplay = document.getElementById('timer-display');
+if (timerBox && timerDisplay) {
+    let tiempoRestante = parseInt(timerDisplay.textContent, 10);
+    const countdownInterval = setInterval(() => {
+        tiempoRestante--;
+        timerDisplay.textContent = tiempoRestante;
+        if (tiempoRestante <= 10) {
+            timerBox.style.color = '#dc2626';
+        }
+        if (tiempoRestante <= 0) {
+            clearInterval(countdownInterval);
+            document.getElementById('form-ejercicio').submit();
+        }
+    }, 1000);
+}
 
 // Web Audio API para el teclado de apoyo
 let audioCtx = null;
