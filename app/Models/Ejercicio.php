@@ -18,9 +18,11 @@ class Ejercicio extends Model
         'tipo_acorde_id',
         'pregunta',
         'tipo',
+        'modalidad',
         'habilidad',
         'dificultad',
         'datos_pregunta',
+        'metadata',
         'respuesta_correcta',
         'explicacion',
         'puntos',
@@ -30,6 +32,23 @@ class Ejercicio extends Model
     {
         return [
             'datos_pregunta' => 'array',
+            'metadata'       => 'array',
+        ];
+    }
+
+    /**
+     * Lista canónica de modalidades disponibles con su etiqueta descriptiva.
+     * Se usa en validaciones y en las vistas de administración.
+     */
+    public static function modalidades(): array
+    {
+        return [
+            'clasica'               => 'Clásica (opción múltiple estándar)',
+            'completar_secuencia'   => 'Completar secuencia de notas',
+            'seleccionar_intervalo' => 'Seleccionar intervalo correcto',
+            'verdadero_falso'       => 'Verdadero o Falso',
+            'ordenar_notas'         => 'Ordenar notas de menor a mayor',
+            'detectar_error'        => 'Detectar la nota errónea en el acorde',
         ];
     }
 
