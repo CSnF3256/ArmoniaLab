@@ -212,6 +212,37 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // ── Lecciones adicionales (Rama 2: variedad de ejercicios) ──────────────
+        $leccion5 = Leccion::firstOrCreate(
+            ['course_id' => $curso->id, 'titulo' => 'Acordes Disminuidos y Aumentados'],
+            [
+                'contenido' => 'El acorde disminuido aplica la fórmula [0, 3, 6]: dos terceras menores superpuestas, generando alta tensión. El aumentado [0, 4, 8] usa dos terceras mayores, con sonido misterioso.',
+                'nivel' => 'Intermedio',
+                'orden' => 5,
+                'habilidad' => 'Acordes Alterados',
+            ]
+        );
+
+        $leccion6 = Leccion::firstOrCreate(
+            ['course_id' => $curso->id, 'titulo' => 'Acordes Suspendidos (sus2 y sus4)'],
+            [
+                'contenido' => 'Los acordes suspendidos reemplazan la tercera por una segunda (sus2: [0,2,7]) o una cuarta (sus4: [0,5,7]), generando una sonoridad abierta que pide resolver.',
+                'nivel' => 'Intermedio',
+                'orden' => 6,
+                'habilidad' => 'Acordes Suspendidos',
+            ]
+        );
+
+        $leccion7 = Leccion::firstOrCreate(
+            ['course_id' => $curso->id, 'titulo' => 'Séptima Mayor y Séptima Menor'],
+            [
+                'contenido' => 'La séptima mayor (maj7: [0,4,7,11]) da un color suave y jazzístico; la séptima menor (m7: [0,3,7,10]) es melancólica y clave en progresiones ii-V-I del jazz.',
+                'nivel' => 'Avanzado',
+                'orden' => 7,
+                'habilidad' => 'Acordes de Séptima',
+            ]
+        );
+
         // 5. Ejercicios Interactivos
         $ejercicios = [
             [
@@ -314,6 +345,7 @@ class DatabaseSeeder extends Seeder
                 'tipo_acorde_id' => null,
                 'pregunta' => '¿Cuántos semitonos de distancia separan la fundamental de una Tercera Menor?',
                 'tipo' => 'opcion_multiple',
+                'modalidad' => 'clasica',
                 'habilidad' => 'Intervalos Armónicos',
                 'dificultad' => 'Fácil',
                 'datos_pregunta' => [
@@ -326,6 +358,175 @@ class DatabaseSeeder extends Seeder
                 ],
                 'respuesta_correcta' => '3 semitonos',
                 'explicacion' => 'La tercera menor equivale a 3 semitonos (tono y medio), mientras que la tercera mayor equivale a 4 semitonos.',
+                'puntos' => 10,
+            ],
+
+            // ── Nuevos ejercicios: Acordes Alterados (Disminuido y Aumentado) ──
+            [
+                'leccion_id' => $leccion5->id,
+                'tipo_acorde_id' => $modelosAcordes['Disminuido']->id,
+                'pregunta' => '¿Cuáles son las notas del acorde de Si disminuido (Bdim)?',
+                'tipo' => 'opcion_multiple',
+                'modalidad' => 'clasica',
+                'habilidad' => 'Acordes Alterados',
+                'dificultad' => 'Medio',
+                'datos_pregunta' => [
+                    'opciones' => [
+                        'Si - Re - Fa',
+                        'Si - Re# - Fa#',
+                        'Si - Re - Fa#',
+                        'La - Do - Mi',
+                    ],
+                ],
+                'respuesta_correcta' => 'Si - Re - Fa',
+                'explicacion' => 'Bdim aplica [0, 3, 6]: Si (tónica) + 3 st = Re (3ra menor) + 3 st = Fa (5ta disminuida).',
+                'puntos' => 15,
+            ],
+            [
+                'leccion_id' => $leccion5->id,
+                'tipo_acorde_id' => $modelosAcordes['Aumentado']->id,
+                'pregunta' => 'El acorde de Do Aumentado (Caug) aplica la fórmula [0, 4, 8]. ¿Cuáles son sus notas?',
+                'tipo' => 'opcion_multiple',
+                'modalidad' => 'detectar_error',
+                'habilidad' => 'Acordes Alterados',
+                'dificultad' => 'Medio',
+                'datos_pregunta' => [
+                    'opciones' => [
+                        'Do',
+                        'Mi',
+                        'Sol#',
+                        'Sol',
+                    ],
+                ],
+                'respuesta_correcta' => 'Sol',
+                'explicacion' => 'Caug = Do (0) + Mi (4 st) + Sol# (8 st). La nota Sol natural NO pertenece: sería la 5ta justa del Mayor, no la aumentada.',
+                'puntos' => 15,
+            ],
+
+            // ── Nuevos ejercicios: Acordes Suspendidos ───────────────────────────
+            [
+                'leccion_id' => $leccion6->id,
+                'tipo_acorde_id' => $modelosAcordes['Suspendido 4']->id,
+                'pregunta' => 'En el acorde Resus4, la tercera del acorde mayor es reemplazada por una cuarta justa. ¿Cuáles son sus notas?',
+                'tipo' => 'opcion_multiple',
+                'modalidad' => 'completar_secuencia',
+                'habilidad' => 'Acordes Suspendidos',
+                'dificultad' => 'Medio',
+                'datos_pregunta' => [
+                    'opciones' => [
+                        'Re - Sol - La',
+                        'Re - Fa# - La',
+                        'Re - Mi - La',
+                        'Re - Sol - Si',
+                    ],
+                ],
+                'respuesta_correcta' => 'Re - Sol - La',
+                'explicacion' => 'Resus4: Re (0) + Sol (5 semitonos, cuarta justa) + La (7 semitonos, quinta justa). La tercera Fa# está ausente.',
+                'puntos' => 15,
+            ],
+            [
+                'leccion_id' => $leccion6->id,
+                'tipo_acorde_id' => $modelosAcordes['Suspendido 2']->id,
+                'pregunta' => '¿Verdadero o Falso? El acorde Lasud2 (Asus2) tiene las notas La - Si - Mi siguiendo la fórmula [0, 2, 7].',
+                'tipo' => 'opcion_multiple',
+                'modalidad' => 'verdadero_falso',
+                'habilidad' => 'Acordes Suspendidos',
+                'dificultad' => 'Fácil',
+                'datos_pregunta' => [
+                    'opciones' => [
+                        'Verdadero',
+                        'Falso',
+                    ],
+                ],
+                'respuesta_correcta' => 'Verdadero',
+                'explicacion' => 'Asus2: La (0 st) + Si (2 st, segunda mayor) + Mi (7 st, quinta justa). La fórmula [0,2,7] es correcta.',
+                'puntos' => 10,
+            ],
+
+            // ── Nuevos ejercicios: Séptimas avanzadas ────────────────────────────
+            [
+                'leccion_id' => $leccion7->id,
+                'tipo_acorde_id' => $modelosAcordes['Séptima mayor']->id,
+                'pregunta' => '¿Cuál es la distancia en semitonos de la Séptima Mayor desde la tónica?',
+                'tipo' => 'opcion_multiple',
+                'modalidad' => 'seleccionar_intervalo',
+                'habilidad' => 'Acordes de Séptima',
+                'dificultad' => 'Medio',
+                'datos_pregunta' => [
+                    'opciones' => [
+                        '11',
+                        '10',
+                        '9',
+                        '12',
+                    ],
+                ],
+                'respuesta_correcta' => '11',
+                'explicacion' => 'La séptima mayor se encuentra a 11 semitonos de la tónica (un semitono menos que la octava). Por eso suena tan cercana a la resolución en la octava.',
+                'puntos' => 15,
+            ],
+            [
+                'leccion_id' => $leccion7->id,
+                'tipo_acorde_id' => $modelosAcordes['Séptima menor']->id,
+                'pregunta' => 'Ordena de menor a mayor las notas del acorde de La menor con séptima (Am7): La, Do, Sol, Mi.',
+                'tipo' => 'opcion_multiple',
+                'modalidad' => 'ordenar_notas',
+                'habilidad' => 'Acordes de Séptima',
+                'dificultad' => 'Avanzado',
+                'datos_pregunta' => [
+                    'opciones' => ['La', 'Do', 'Sol', 'Mi'],
+                ],
+                'respuesta_correcta' => 'La - Do - Mi - Sol',
+                'explicacion' => 'Am7 = [0, 3, 7, 10]: La (tónica), Do (3ra menor / 3 st), Mi (5ta justa / 7 st), Sol (7ma menor / 10 st). Orden: La - Do - Mi - Sol.',
+                'puntos' => 20,
+            ],
+            [
+                'leccion_id' => $leccion7->id,
+                'tipo_acorde_id' => $modelosAcordes['Séptima dominante']->id,
+                'pregunta' => '¿Verdadero o Falso? El acorde de Fa Mayor con séptima dominante (F7) contiene las notas Fa - La - Do - Mib.',
+                'tipo' => 'opcion_multiple',
+                'modalidad' => 'verdadero_falso',
+                'habilidad' => 'Acordes de Séptima',
+                'dificultad' => 'Avanzado',
+                'datos_pregunta' => [
+                    'opciones' => [
+                        'Verdadero',
+                        'Falso',
+                    ],
+                ],
+                'respuesta_correcta' => 'Verdadero',
+                'explicacion' => 'F7 aplica [0,4,7,10]: Fa (tónica) + La (3ra mayor / 4 st) + Do (5ta justa / 7 st) + Mib (7ma menor / 10 st). ¡Correcto!',
+                'puntos' => 20,
+            ],
+
+            // ── Nuevos ejercicios: Intervalos avanzados ──────────────────────────
+            [
+                'leccion_id' => $leccion4->id,
+                'tipo_acorde_id' => null,
+                'pregunta' => 'La distancia de Do a Sol es una Quinta Justa. ¿Cuántos semitonos son?',
+                'tipo' => 'opcion_multiple',
+                'modalidad' => 'seleccionar_intervalo',
+                'habilidad' => 'Intervalos Armónicos',
+                'dificultad' => 'Fácil',
+                'datos_pregunta' => [
+                    'opciones' => ['5', '6', '7', '8'],
+                ],
+                'respuesta_correcta' => '7',
+                'explicacion' => 'La quinta justa equivale a 7 semitonos: Do → Do# → Re → Re# → Mi → Fa → Fa# → Sol (7 pasos).',
+                'puntos' => 10,
+            ],
+            [
+                'leccion_id' => $leccion4->id,
+                'tipo_acorde_id' => null,
+                'pregunta' => '¿Cuál de estas notas NO pertenece a la escala de Do Mayor (Do Re Mi Fa Sol La Si)?',
+                'tipo' => 'opcion_multiple',
+                'modalidad' => 'detectar_error',
+                'habilidad' => 'Intervalos Armónicos',
+                'dificultad' => 'Fácil',
+                'datos_pregunta' => [
+                    'opciones' => ['Mi', 'Fa#', 'Sol', 'La'],
+                ],
+                'respuesta_correcta' => 'Fa#',
+                'explicacion' => 'La escala de Do Mayor no tiene alteraciones. Fa# (Fa sostenido) es la nota incorrecta; la escala lleva Fa natural.',
                 'puntos' => 10,
             ],
         ];
