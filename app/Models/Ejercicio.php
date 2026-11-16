@@ -51,20 +51,13 @@ class Ejercicio extends Model
             'detectar_error'        => 'Detectar la nota errónea en el acorde',
             'construccion_visual'   => 'Construcción Visual (Drag & Drop)',
             'progresion_funcional'  => 'Progresiones Funcionales (tablero)',
+            'sincronia_ritmica'     => 'Sincronía Rítmica (Metrónomo)',
         ];
     }
 
     /**
      * Evalúa un payload interactivo (drag-drop o progresión) desde el back-end.
      * Devuelve [bool $esCorrecta, string $explicacion].
-     *
-     * Para 'construccion_visual': $respuestaUsuario es una cadena de notas
-     * separadas por " - " en el orden en que el estudiante las colocó.
-     * Se compara contra respuesta_correcta del mismo modo que las modalidades
-     * clásicas (insensible a mayúsculas y espacios duplicados).
-     *
-     * Para 'progresion_funcional': $respuestaUsuario es una cadena de slugs
-     * de acordes separados por " > " (ej: "Am > F > C > G").
      */
     public function evaluarRespuesta(string $respuestaUsuario): array
     {
