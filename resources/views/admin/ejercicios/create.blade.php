@@ -115,6 +115,33 @@
                 <div>{{-- espacio --}}</div>
             </div>
 
+            {{-- Campos exclusivos para modalidades interactivas avanzadas --}}
+            <div id="campos-interactivos" class="mb-3" style="display:none;">
+                <div class="options-creation-box p-3" style="border-color:#a5b4fc;background:#eef2ff;">
+                    <h3>⚙️ Configuración avanzada (Drag & Drop / Progresión)</h3>
+                    <div class="form-grid mt-2">
+                        <div>
+                            <label for="metadata_contexto">Contexto armónico (opcional)</label>
+                            <input id="metadata_contexto" name="metadata_contexto" type="text"
+                                   value="{{ old('metadata_contexto') }}"
+                                   placeholder="Ej: Progresión I-IV-V-I en Do Mayor">
+                            <p class="field-help text-sm text-muted">Aparece sobre el tablero de progresión.</p>
+                        </div>
+                        <div>
+                            <label for="metadata_reglas">Regla armónica visible (opcional)</label>
+                            <input id="metadata_reglas" name="metadata_reglas" type="text"
+                                   value="{{ old('metadata_reglas') }}"
+                                   placeholder="Ej: La Dominante siempre resuelve a la Tónica">
+                            <p class="field-help text-sm text-muted">Se muestra como pista de regla armónica.</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-muted mt-2">
+                        <strong>Drag & Drop:</strong> Las opciones (A-D) son las notas disponibles. La respuesta correcta es las notas en orden, separadas por " - " (ej: "Do - Mi - Sol").<br>
+                        <strong>Progresión:</strong> Las opciones son los acordes de la progresión. La respuesta correcta son los acordes en orden, separados por " > " (ej: "Am > F > C > G").
+                    </p>
+                </div>
+            </div>
+
             <div class="mb-3">
                 <label for="pregunta">Pregunta o Enunciado del Ejercicio *</label>
                 <textarea id="pregunta" name="pregunta" rows="3" placeholder="Ej: ¿Cuáles son las notas integrantes del acorde de Sol Mayor (G)?" required>{{ old('pregunta') }}</textarea>
@@ -219,6 +246,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const cursoInicial = document.getElementById('course_id').value;
     if (cursoInicial) {
         cargarLecciones(cursoInicial, oldLeccionId);
+    }
+
+    // Mostrar campos avanzados solo para modalidades interactivas
+    const selectModalidad = document.getElementById('modalidad');
+    const camposInteractivos = document.getElementById('campos-interactivos');
+    const MODALES_AVANZADAS = ['construccion_visual', 'progresion_funcional'];
+
+    function toggleCamposInteractivos() {
+        if (!selectModalidad || !camposInteractivos) return;
+        camposInteractivos.style.display = MODALES_AVANZADAS.includes(selectModalidad.value) ? 'block' : 'none';
+    }
+    if (selectModalidad) {
+        selectModalidad.addEventListener('change', toggleCamposInteractivos);
+        toggleCamposInteractivos();
     }
 });
 </script>

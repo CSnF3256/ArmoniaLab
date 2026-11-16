@@ -78,7 +78,7 @@ class EjercicioModalidadesTest extends TestCase
     {
         $modalidades = Ejercicio::modalidades();
 
-        $this->assertCount(6, $modalidades);
+        $this->assertCount(8, $modalidades);
         $this->assertArrayHasKey('clasica', $modalidades);
         $this->assertArrayHasKey('completar_secuencia', $modalidades);
         $this->assertArrayHasKey('seleccionar_intervalo', $modalidades);

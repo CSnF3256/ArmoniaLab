@@ -529,6 +529,109 @@ class DatabaseSeeder extends Seeder
                 'explicacion' => 'La escala de Do Mayor no tiene alteraciones. Fa# (Fa sostenido) es la nota incorrecta; la escala lleva Fa natural.',
                 'puntos' => 10,
             ],
+
+            // ── Nuevos ejercicios: Construcción Visual (Drag & Drop) ─────────────
+            [
+                'leccion_id'     => $leccion1->id,
+                'tipo_acorde_id' => $modelosAcordes['Mayor']->id,
+                'pregunta'       => 'Arrastra las notas al pentagrama para construir el acorde de Sol Mayor (G). Colócalas de grave a agudo.',
+                'tipo'           => 'construir_acorde',
+                'modalidad'      => 'construccion_visual',
+                'habilidad'      => 'Tríadas Mayores',
+                'dificultad'     => 'Intermedio',
+                'datos_pregunta' => [
+                    'opciones' => ['Sol', 'Si', 'Re', 'Fa'],  // 'Fa' es el distractor
+                ],
+                'respuesta_correcta' => 'Sol - Si - Re',
+                'explicacion'    => 'Sol Mayor aplica [0,4,7]: Sol (tónica), Si (3ra mayor, 4 st) y Re (5ta justa, 7 st). Fa NO pertenece al acorde.',
+                'puntos'         => 20,
+                'metadata'       => ['pista' => 'Recuerda: Mayor = Tónica + 3ra Mayor (4 st) + 5ta Justa (7 st)'],
+            ],
+            [
+                'leccion_id'     => $leccion2->id,
+                'tipo_acorde_id' => $modelosAcordes['Menor']->id,
+                'pregunta'       => 'Construye el acorde de Mi menor (Em) arrastrando las notas correctas al pentagrama en orden ascendente.',
+                'tipo'           => 'construir_acorde',
+                'modalidad'      => 'construccion_visual',
+                'habilidad'      => 'Tríadas Menores',
+                'dificultad'     => 'Intermedio',
+                'datos_pregunta' => [
+                    'opciones' => ['Mi', 'Sol', 'Si', 'Sol#'],  // 'Sol#' es el distractor
+                ],
+                'respuesta_correcta' => 'Mi - Sol - Si',
+                'explicacion'    => 'Em aplica [0,3,7]: Mi (tónica), Sol (3ra menor, 3 st) y Si (5ta justa, 7 st). Sol# pertenece a Mi Mayor, no a Em.',
+                'puntos'         => 20,
+                'metadata'       => ['pista' => 'Menor = Tónica + 3ra Menor (3 st) + 5ta Justa (7 st)'],
+            ],
+            [
+                'leccion_id'     => $leccion5->id,
+                'tipo_acorde_id' => $modelosAcordes['Disminuido']->id,
+                'pregunta'       => 'Arrastra las tres notas que forman el acorde de La disminuido (Adim) al pentagrama. ¡Cuidado con el distractor!',
+                'tipo'           => 'construir_acorde',
+                'modalidad'      => 'construccion_visual',
+                'habilidad'      => 'Acordes Alterados',
+                'dificultad'     => 'Avanzado',
+                'datos_pregunta' => [
+                    'opciones' => ['La', 'Do', 'Mib', 'Mi'],  // 'Mi' es el distractor (sería la 5ta justa, no disminuida)
+                ],
+                'respuesta_correcta' => 'La - Do - Mib',
+                'explicacion'    => 'Adim aplica [0,3,6]: La (tónica), Do (3ra menor, 3 st) y Mib (5ta disminuida, 6 st). Mi natural sería la 5ta justa del Menor.',
+                'puntos'         => 25,
+                'metadata'       => ['pista' => 'Disminuido = Tónica + 3ra Menor (3 st) + 5ta Disminuida (6 st)'],
+            ],
+
+            // ── Nuevos ejercicios: Progresiones Funcionales ──────────────────────
+            [
+                'leccion_id'     => $leccion3->id,
+                'tipo_acorde_id' => null,
+                'pregunta'       => 'Ordena esta progresión ii-V-I en Do Mayor: los acordes Dm, G7 y Cmaj7 deben aparecer en el orden que genera tensión y resolución.',
+                'tipo'           => 'opcion_multiple',
+                'modalidad'      => 'progresion_funcional',
+                'habilidad'      => 'Acordes de Séptima',
+                'dificultad'     => 'Avanzado',
+                'datos_pregunta' => [
+                    'opciones'  => ['Dm', 'G7', 'Cmaj7'],
+                    'reglas'    => 'ii → V → I: la subdominante (ii) crea tensión, la dominante (V7) la intensifica y la tónica (I) la resuelve.',
+                    'contexto'  => 'Progresión ii-V-I en Do Mayor — la más importante del jazz tonal.',
+                ],
+                'respuesta_correcta' => 'Dm > G7 > Cmaj7',
+                'explicacion'    => 'La progresión ii-V-I es: Dm (ii, subdominante), G7 (V7, dominante con tensión máxima) y Cmaj7 (I, tónica, resolución). Es el pilar del jazz y la música tonal.',
+                'puntos'         => 25,
+            ],
+            [
+                'leccion_id'     => $leccion1->id,
+                'tipo_acorde_id' => null,
+                'pregunta'       => 'Ordena la progresión I-IV-V-I (cadencia auténtica perfecta) usando los acordes C, F, G y C en la tonalidad de Do Mayor.',
+                'tipo'           => 'opcion_multiple',
+                'modalidad'      => 'progresion_funcional',
+                'habilidad'      => 'Tríadas Mayores',
+                'dificultad'     => 'Medio',
+                'datos_pregunta' => [
+                    'opciones'  => ['C', 'F', 'G', 'C'],
+                    'reglas'    => 'I (Tónica) → IV (Subdominante) → V (Dominante) → I (Tónica): cadencia auténtica perfecta.',
+                    'contexto'  => 'Cadencia I-IV-V-I en Do Mayor — la progresión tonal más universal.',
+                ],
+                'respuesta_correcta' => 'C > F > G > C',
+                'explicacion'    => 'C (I-Tónica) → F (IV-Subdominante) → G (V-Dominante) → C (I-Tónica). Esta cadencia auténtica perfecta es la base de miles de canciones pop, rock y clásica.',
+                'puntos'         => 20,
+            ],
+            [
+                'leccion_id'     => $leccion2->id,
+                'tipo_acorde_id' => null,
+                'pregunta'       => 'Ordena la progresión I-V-vi-IV (la más usada del pop) en Do Mayor: C, G, Am, F.',
+                'tipo'           => 'opcion_multiple',
+                'modalidad'      => 'progresion_funcional',
+                'habilidad'      => 'Tríadas Menores',
+                'dificultad'     => 'Medio',
+                'datos_pregunta' => [
+                    'opciones'  => ['C', 'G', 'Am', 'F'],
+                    'reglas'    => 'I → V → vi → IV: Tónica, Dominante, Relativo Menor, Subdominante.',
+                    'contexto'  => 'Progresión I-V-vi-IV — presente en "Let It Be", "No Woman No Cry" y cientos de éxitos.',
+                ],
+                'respuesta_correcta' => 'C > G > Am > F',
+                'explicacion'    => 'C (I) → G (V) → Am (vi, relativo menor) → F (IV). Esta progresión es la "cadencia pop" más reconocida de la música moderna.',
+                'puntos'         => 20,
+            ],
         ];
 
         $ejerciciosCreados = [];
