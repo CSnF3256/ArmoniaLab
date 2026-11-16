@@ -22,6 +22,7 @@
                     <th>Pregunta</th>
                     <th>Curso / Lección</th>
                     <th>Habilidad</th>
+                    <th>Modalidad</th>
                     <th>Dificultad</th>
                     <th>Respuesta Correcta</th>
                     <th>Puntos</th>
@@ -37,6 +38,7 @@
                             <span class="text-sm text-muted">↳ {{ $ej->leccion?->titulo ?? 'Sin lección' }}</span>
                         </td>
                         <td><span class="badge-skill small">{{ $ej->habilidad }}</span></td>
+                        <td><span class="badge-skill small" style="background:#e0e7ff;color:#3730a3;">{{ ucfirst(str_replace('_', ' ', $ej->modalidad ?? 'clasica')) }}</span></td>
                         <td><span class="badge-difficulty {{ strtolower($ej->dificultad) }}">{{ $ej->dificultad }}</span></td>
                         <td><code class="correct-text">{{ $ej->respuesta_correcta }}</code></td>
                         <td>{{ $ej->puntos }} pts</td>

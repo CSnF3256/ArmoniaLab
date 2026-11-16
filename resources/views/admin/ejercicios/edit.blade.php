@@ -83,6 +83,34 @@
                 </div>
             </div>
 
+            {{-- NUEVA SECCIÓN: Modalidad de ejercicio --}}
+            <div class="form-grid mb-3">
+                <div>
+                    <label for="modalidad">Modalidad de Presentación *</label>
+                    <select id="modalidad" name="modalidad" required>
+                        @foreach($modalidades as $valor => $etiqueta)
+                            <option value="{{ $valor }}" @selected(old('modalidad', $ejercicio->modalidad ?? 'clasica') === $valor)>{{ $etiqueta }}</option>
+                        @endforeach
+                    </select>
+                    @error('modalidad') <p class="error">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="metadata_pista">Pista visible (opcional)</label>
+                    <input id="metadata_pista" name="metadata_pista" type="text"
+                           value="{{ old('metadata_pista', $ejercicio->metadata['pista'] ?? '') }}"
+                           placeholder="Ej: Recuerda la fórmula [0, 4, 7]">
+                </div>
+            </div>
+
+            <div class="form-grid mb-3">
+                <div>
+                    <label for="metadata_tiempo_limite">Tiempo límite en segundos (0 = sin límite)</label>
+                    <input id="metadata_tiempo_limite" name="metadata_tiempo_limite" type="number" min="0" max="600"
+                           value="{{ old('metadata_tiempo_limite', $ejercicio->metadata['tiempo_limite'] ?? 0) }}">
+                </div>
+                <div>{{-- espacio --}}</div>
+            </div>
+
             <div class="mb-3">
                 <label for="pregunta">Pregunta o Enunciado *</label>
                 <textarea id="pregunta" name="pregunta" rows="3" required>{{ old('pregunta', $ejercicio->pregunta) }}</textarea>

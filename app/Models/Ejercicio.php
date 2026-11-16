@@ -18,9 +18,11 @@ class Ejercicio extends Model
         'tipo_acorde_id',
         'pregunta',
         'tipo',
+        'modalidad',
         'habilidad',
         'dificultad',
         'datos_pregunta',
+        'metadata',
         'respuesta_correcta',
         'explicacion',
         'puntos',
@@ -30,7 +32,51 @@ class Ejercicio extends Model
     {
         return [
             'datos_pregunta' => 'array',
+            'metadata'       => 'array',
         ];
+    }
+
+    /**
+     * Lista canónica de modalidades disponibles con su etiqueta descriptiva.
+     * Se usa en validaciones y en las vistas de administración.
+     */
+    public static function modalidades(): array
+    {
+        return [
+            'clasica'               => 'Clásica (opción múltiple estándar)',
+            'completar_secuencia'   => 'Completar secuencia de notas',
+            'seleccionar_intervalo' => 'Seleccionar intervalo correcto',
+            'verdadero_falso'       => 'Verdadero o Falso',
+            'ordenar_notas'         => 'Ordenar notas de menor a mayor',
+            'detectar_error'        => 'Detectar la nota errónea en el acorde',
+            'construccion_visual'   => 'Construcción Visual (Drag & Drop)',
+            'progresion_funcional'  => 'Progresiones Funcionales (tablero)',
+        ];
+    }
+
+    /**
+     * Evalúa un payload interactivo (drag-drop o progresión) desde el back-end.
+     * Devuelve [bool $esCorrecta, string $explicacion].
+     *
+     * Para 'construccion_visual': $respuestaUsuario es una cadena de notas
+     * separadas por " - " en el orden en que el estudiante las colocó.
+     * Se compara contra respuesta_correcta del mismo modo que las modalidades
+     * clásicas (insensible a mayúsculas y espacios duplicados).
+     *
+     * Para 'progresion_funcional': $respuestaUsuario es una cadena de slugs
+     * de acordes separados por " > " (ej: "Am > F > C > G").
+     */
+    public function evaluarRespuesta(string $respuestaUsuario): array
+    {
+        $normalizar = fn (string $s) => mb_strtolower(preg_replace('/\s+/', ' ', trim($s)));
+
+        $esCorrecta = $normalizar($respuestaUsuario) === $normalizar($this->respuesta_correcta);
+
+        $explicacion = $esCorrecta
+            ? '¡Respuesta correcta! ' . ($this->explicacion ?? 'Has aplicado correctamente las reglas armónicas.')
+            : 'Respuesta incorrecta. ' . ($this->explicacion ?? "La respuesta esperada era: {$this->respuesta_correcta}.");
+
+        return [$esCorrecta, $explicacion];
     }
 
     public function leccion(): BelongsTo
