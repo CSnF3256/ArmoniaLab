@@ -273,20 +273,18 @@
         </div>
     </div>
 
+
+{{-- ══════════════════════════════════════════════════════════════
+         COMPONENTE: Captura de Micrófono (feat/audio-captura)
+         Solo se muestra cuando el ejercicio tiene metadata.audio_captura = true.
+         El componente gestiona permisos, estado del dispositivo, visualizador
+         y liberación del micrófono al salir (commits 1-4).
+    ══════════════════════════════════════════════════════════════ --}}
+    @if(!empty($ejercicio->metadata['audio_captura']))
+        @include('components.audio-captura')
+    @endif
+
     
-
-
-
-
-
-
-
-
-
-
-
-    
-
     <!-- Historial de Intentos Previos en este Ejercicio -->
     @if($ultimosIntentos->isNotEmpty())
         <div class="card mt-4">
