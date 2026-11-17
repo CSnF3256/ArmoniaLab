@@ -1,7 +1,7 @@
 # Modalidades de Ejercicios Disponibles
 
-> **Rama:** `feat/ejercicios-variedad`  
-> **PR:** `feat(ejercicios): ampliar modalidades de practica musical`  
+> **Rama:** `feat/ejercicios-variedad`
+> **PR:** `feat(ejercicios): ampliar modalidades de practica musical`
 > **Revisora:** Camila
 
 ---
@@ -71,31 +71,20 @@ Cada ejercicio puede tener metadatos opcionales que se configuran desde el panel
 
 ---
 
-## Flujo de creación de ejercicio con modalidad
+## Flujo de Creación de Ejercicio con Modalidad
 
-```
-Admin elige Curso → (dropdown dependiente carga Lecciones vía AJAX)
-     ↓
-Admin elige Modalidad (selector con 6 opciones)
-     ↓
-Admin rellena Pista y Tiempo límite (opcionales)
-     ↓
-POST admin.ejercicios.store → AdminEjercicioController@store
-     ↓
-Validación backend: modalidad in:[clasica, completar_secuencia, ...]
-     ↓
-Ejercicio::create([..., 'modalidad' => ..., 'metadata' => [...]])
-     ↓
-Estudiante ve show.blade.php → @if($modalidad === 'verdadero_falso') ...
-     ↓
-POST ejercicios.responder → EjercicioController@responder
-     ↓ (lógica de autocorrección sin cambios)
-Intento guardado + Progreso actualizado
-```
+1. El administrador selecciona el curso y la lección.
+2. Elige una modalidad del selector con las 6 opciones disponibles.
+3. Rellena opcionalmente la pista contextual y el tiempo límite.
+4. Envía el formulario POST a `admin.ejercicios.store` -> `AdminEjercicioController@store`.
+5. El backend valida que la modalidad esté permitida mediante `Rule::in(...)`.
+6. Se persiste el ejercicio con su respectiva modalidad y metadatos en formato JSON.
+7. El estudiante accede al ejercicio y la vista `show.blade.php` renderiza el componente interactivo adecuado.
+8. Al enviar la respuesta, el controlador `EjercicioController@responder` evalúa la autocorrección, guarda el intento y actualiza el progreso del usuario.
 
 ---
 
-## Habilidades cubiertas en el seeder ampliado
+## Habilidades Cubiertas en el Seeder Ampliado
 
 | Habilidad | Lección | Modalidades usadas |
 |---|---|---|
@@ -106,4 +95,3 @@ Intento guardado + Progreso actualizado
 | Intervalos Armónicos | Cálculo de Intervalos Armónicos | `clasica`, `seleccionar_intervalo`, `detectar_error` |
 | **Acordes Alterados** *(nuevo)* | Acordes Disminuidos y Aumentados | `clasica`, `detectar_error` |
 | **Acordes Suspendidos** *(nuevo)* | Acordes Suspendidos (sus2 y sus4) | `completar_secuencia`, `verdadero_falso` |
-
