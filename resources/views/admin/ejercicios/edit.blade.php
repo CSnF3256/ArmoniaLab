@@ -137,8 +137,8 @@
                 <h3>Opciones de Respuesta</h3>
                 @for($i = 0; $i < 4; $i++)
                     <div class="mt-2">
-                        <label for="opcion_{{ $i + 1 }}">Opción {{ chr(65 + $i) }} *</label>
-                        <input id="opcion_{{ $i + 1 }}" name="opcion_{{ $i + 1 }}" type="text" value="{{ old('opcion_'.($i + 1), $opciones[$i]) }}" required>
+                        <label for="opcion_{{ $i + 1 }}">Opción {{ chr(65 + $i) }} {{ $i < 2 ? '*' : '(opcional)' }}</label>
+                        <input id="opcion_{{ $i + 1 }}" name="opcion_{{ $i + 1 }}" type="text" value="{{ old('opcion_'.($i + 1), $opciones[$i] ?? '') }}" @if($i < 2) required @endif>
                         @error('opcion_'.($i + 1)) <p class="error">{{ $message }}</p> @enderror
                     </div>
                 @endfor

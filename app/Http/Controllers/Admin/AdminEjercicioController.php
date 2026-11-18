@@ -209,12 +209,12 @@ class AdminEjercicioController extends Controller
             'habilidad' => $validated['habilidad'],
             'dificultad' => $validated['dificultad'],
             'datos_pregunta' => [
-                'opciones' => [
+                'opciones' => array_values(array_filter([
                     $validated['opcion_1'],
                     $validated['opcion_2'],
-                    $validated['opcion_3'],
-                    $validated['opcion_4'],
-                ],
+                    $validated['opcion_3'] ?? null,
+                    $validated['opcion_4'] ?? null,
+                ], fn ($opcion) => ! is_null($opcion) && $opcion !== '')),
             ],
             'metadata' => array_filter([
                 'pista' => $validated['metadata_pista'] ?? null,
