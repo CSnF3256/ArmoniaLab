@@ -273,7 +273,6 @@
         </div>
     </div>
 
-    
 
 
 
@@ -285,7 +284,8 @@
 
 
 
-    
+
+
 
     <!-- Historial de Intentos Previos en este Ejercicio -->
     @if($ultimosIntentos->isNotEmpty())
