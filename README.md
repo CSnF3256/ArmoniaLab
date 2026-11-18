@@ -1,14 +1,14 @@
 # ArmoníaLab — Plataforma de Teoría Musical y Core Armónico MVC
 
-![Estado del proyecto](https://img.shields.io/badge/estado-avance%202%20completado-6d3fc0?style=for-the-badge)
+![Estado del proyecto](https://img.shields.io/badge/estado-audio%20y%20seguridad-6d3fc0?style=for-the-badge)
 ![Laravel](https://img.shields.io/badge/Laravel-12-ff2d20?style=for-the-badge&logo=laravel)
 ![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=for-the-badge&logo=php)
-![Pruebas](https://img.shields.io/badge/pruebas-27%20aprobadas-1b8a5a?style=for-the-badge)
+![Pruebas](https://img.shields.io/badge/pruebas-66%20aprobadas-1b8a5a?style=for-the-badge)
 ![Despliegue](https://img.shields.io/badge/despliegue-docker%20%7C%20render-0284c7?style=for-the-badge&logo=docker)
 
 ArmoníaLab es una plataforma web educativa orientada al aprendizaje práctico de la teoría musical, desarrollada con **PHP y Laravel 12** siguiendo estrictamente el patrón arquitectónico **Modelo-Vista-Controlador (MVC)**.
 
-Este repositorio contiene la implementación del **Core Musical de cálculo y visualización interactiva de acordes**, la **validación en Back-End de datos sensibles**, la implementación de **dropdowns dependientes en cascada**, el módulo de **ejercicios con autocorrección inmediata** y el motor de **recomendaciones personalizadas por habilidad**.
+Este repositorio contiene la implementación del **Core Musical de cálculo y visualización interactiva de acordes**, la **validación en Back-End de datos sensibles**, la implementación de **dropdowns dependientes en cascada**, el módulo de **ejercicios con autocorrección inmediata**, el motor de **recomendaciones personalizadas por habilidad** y un prototipo de **reconocimiento local de acordes mediante micrófono**.
 
 ---
 
@@ -25,16 +25,17 @@ Este repositorio contiene la implementación del **Core Musical de cálculo y vi
 ## 📑 Tabla de Contenidos
 
 1. [Novedades de este Avance](#-novedades-de-este-avance)
-2. [El Core MVC: Generador y Visualizador de Acordes](#-el-core-mvc-generador-y-visualizador-de-acordes)
-3. [Validación en Back-End de Datos Sensibles](#-validación-en-back-end-de-datos-sensibles)
-4. [Dropdowns Dependientes en Cascada (Cascading Selects)](#-dropdowns-dependientes-en-cascada-cascading-selects)
-5. [Ejercicios con Autocorrección y Recomendaciones Adaptativas](#-ejercicios-con-autocorrección-y-recomendaciones-adaptativas)
-6. [Arquitectura MVC y Componentes](#-arquitectura-mvc-y-componentes)
-7. [Usuarios de Demostración](#-usuarios-de-demostración)
-8. [Instalación y Ejecución Local](#-instalación-y-ejecución-local)
-9. [Batería de Pruebas Automáticas](#-batería-de-pruebas-automáticas)
-10. [Guía de Despliegue en un Servidor (Fuera de Localhost)](#-guía-de-despliegue-en-un-servidor-fuera-de-localhost)
-11. [Control de Versiones en Git](#-control-de-versiones-en-git)
+2. [Avance de Audio y Seguridad](#-avance-de-audio-y-seguridad)
+3. [El Core MVC: Generador y Visualizador de Acordes](#-el-core-mvc-generador-y-visualizador-de-acordes)
+4. [Validación en Back-End de Datos Sensibles](#-validación-en-back-end-de-datos-sensibles)
+5. [Dropdowns Dependientes en Cascada (Cascading Selects)](#-dropdowns-dependientes-en-cascada-cascading-selects)
+6. [Ejercicios con Autocorrección y Recomendaciones Adaptativas](#-ejercicios-con-autocorrección-y-recomendaciones-adaptativas)
+7. [Arquitectura MVC y Componentes](#-arquitectura-mvc-y-componentes)
+8. [Usuarios de Demostración](#-usuarios-de-demostración)
+9. [Instalación y Ejecución Local](#-instalación-y-ejecución-local)
+10. [Batería de Pruebas Automáticas](#-batería-de-pruebas-automáticas)
+11. [Guía de Despliegue en un Servidor (Fuera de Localhost)](#-guía-de-despliegue-en-un-servidor-fuera-de-localhost)
+12. [Control de Versiones en Git](#-control-de-versiones-en-git)
 
 ---
 
@@ -50,6 +51,21 @@ En cumplimiento de las directrices académicas y la retroalimentación docente r
 4. **Ejercicios con Corrección Automática:** Validación en servidor de respuestas de estudiantes, registro histórico de intentos con tiempo y puntaje.
 5. **Diagnóstico y Recomendaciones Personalizadas:** Análisis algorítmico de porcentaje de acierto por habilidad que detecta debilidades y genera dinámicamente rutas de práctica personalizadas.
 6. **Configuración para Despliegue en Servidor en la Nube:** Archivos `Dockerfile`, `docker/start.sh` con puerto dinámico y `render.yaml` listos para desplegar en plataformas cloud como Render, Railway o VPS.
+7. **Audio y Seguridad:** Captura de micrófono con Web Audio API, nivel de entrada calculado mediante RMS, análisis FFT y comparación local con notas objetivo que incluyen octava, además de controles de autenticación y autorización comprobados.
+
+---
+
+## 🎙️ Avance de Audio y Seguridad
+
+El administrador o docente puede activar el reconocimiento de audio en un ejercicio y configurar entre 2 y 6 notas con octava, por ejemplo `Do4, Mi4, Sol4`. Laravel valida esta configuración en el Back-End y la guarda dentro del campo JSON `metadata` del ejercicio.
+
+En la vista del estudiante, el navegador solicita permiso para utilizar el micrófono. La aplicación calcula el nivel de entrada mediante **RMS** y utiliza una **FFT de 8192 muestras** para comparar frecuencias musicales concretas con la disposición configurada. El acorde se confirma después de varias lecturas completas consecutivas para reducir resultados inestables.
+
+El procesamiento ocurre en memoria dentro del navegador: no se graban archivos ni se envía audio al servidor. El resultado sirve como **retroalimentación visual local**; todavía no crea automáticamente un intento, puntaje o progreso académico.
+
+La aplicación también protege las rutas mediante autenticación y middleware por rol, limita los intentos fallidos de inicio de sesión y oculta `password`, `remember_token` y `cedula` durante la serialización del modelo `User`.
+
+La explicación técnica, la demostración y las preguntas de defensa están disponibles en [`docs/AVANCE_AUDIO_SEGURIDAD.md`](docs/AVANCE_AUDIO_SEGURIDAD.md).
 
 ---
 
@@ -290,7 +306,7 @@ php artisan test --filter=SensitiveDataExposureTest
 
 ## 🧪 Batería de Pruebas Automáticas
 
-El proyecto cuenta con **30 pruebas automáticas** que cubren los requerimientos y reglas de negocio implementados:
+El proyecto cuenta con **66 pruebas automáticas y 218 afirmaciones** que cubren los requerimientos y reglas de negocio implementados:
 
 ```bash
 php artisan test
@@ -303,6 +319,8 @@ php artisan test
 - `CascadingDropdownsTest`: Verifica que los endpoints de geografía y cursos retornen exclusivamente los hijos de la entidad seleccionada y rechace en el Back-End la asignación de claves foráneas no pertenecientes al padre.
 - `EjercicioAutocorrectionTest`: Evalúa que el motor de autocorrección asigne puntajes, registre intentos en base de datos y active recomendaciones personalizadas ante fallos.
 - `AuthenticationTest` y `CourseCrudTest`: Verifican la seguridad por middleware, sesión y control de acceso propietario.
+- `AudioCapturaTest`: Verifica la configuración administrativa, la validación de notas con octava, el renderizado condicional del micrófono y que las modalidades existentes continúen funcionando.
+- `RoleAuthorizationTest` y `SensitiveDataExposureTest`: Comprueban permisos por rol, acceso directo a URLs y ocultamiento de datos sensibles durante la serialización.
 
 ---
 
