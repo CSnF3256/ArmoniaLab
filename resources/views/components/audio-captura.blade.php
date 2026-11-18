@@ -307,17 +307,19 @@
 
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
+        const timeData = new Float32Array(analyser.fftSize);
         const ctx = canvas.getContext('2d');
         let frame = 0;
 
         function renderFrame() {
             animationId = requestAnimationFrame(renderFrame);
             analyser.getByteFrequencyData(dataArray);
+            analyser.getFloatTimeDomainData(timeData);
 
-            let sum = 0;
-            for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
-            const avg = sum / bufferLength;
-            const pct = Math.min(100, Math.round((avg / 140) * 100));
+            let sumaCuadrados = 0;
+            for (let i = 0; i < timeData.length; i++) sumaCuadrados += timeData[i] * timeData[i];
+            const rms = Math.sqrt(sumaCuadrados / timeData.length);
+            const pct = Math.min(100, Math.round(rms * 500));
 
             if (levelBar) levelBar.style.width = pct + '%';
             if (dbLabel) dbLabel.textContent = pct + '%';
@@ -355,8 +357,8 @@
             return;
         }
 
-        const umbral = Math.max(62, maximo * 0.42);
-        const detectadas = targetNotes.filter(nota => energiaDeClase(pitchClasses[nota], dataArray) >= umbral);
+        const umbral = Math.max(45, maximo * 0.25);
+        const detectadas = targetNotes.filter(nota => energiaDeNota(nota, dataArray) >= umbral);
         detectedBox.textContent = detectadas.length ? detectadas.join(' · ') : 'Ninguna nota objetivo';
 
         if (detectadas.length === targetNotes.length) {
@@ -377,17 +379,21 @@
         }
     }
 
-    function energiaDeClase(pitchClass, dataArray) {
+    function energiaDeNota(nota, dataArray) {
+        const coincidencia = /^(.+)([2-6])$/.exec(nota);
+        if (!coincidencia) return 0;
+
+        const pitchClass = pitchClasses[coincidencia[1]];
+        const octava = Number(coincidencia[2]);
         if (pitchClass === undefined) return 0;
+
+        const midi = (octava + 1) * 12 + pitchClass;
+        const frecuencia = 440 * Math.pow(2, (midi - 69) / 12);
+        const bin = Math.round(frecuencia * analyser.fftSize / audioContext.sampleRate);
         let energia = 0;
 
-        for (let midi = 36; midi <= 84; midi++) {
-            if (((midi % 12) + 12) % 12 !== pitchClass) continue;
-            const frecuencia = 440 * Math.pow(2, (midi - 69) / 12);
-            const bin = Math.round(frecuencia * analyser.fftSize / audioContext.sampleRate);
-            for (let offset = -1; offset <= 1; offset++) {
-                energia = Math.max(energia, dataArray[bin + offset] || 0);
-            }
+        for (let offset = -2; offset <= 2; offset++) {
+            energia = Math.max(energia, dataArray[bin + offset] || 0);
         }
 
         return energia;

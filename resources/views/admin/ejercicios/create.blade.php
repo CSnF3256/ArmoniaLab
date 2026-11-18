@@ -124,8 +124,8 @@
                 <div id="audio-config" class="mt-2">
                     <label for="audio_notas_objetivo">Notas que forman el acorde *</label>
                     <input id="audio_notas_objetivo" name="audio_notas_objetivo" type="text"
-                           value="{{ old('audio_notas_objetivo') }}" placeholder="Ej: Do, Mi, Sol">
-                    <p class="field-help text-sm text-muted">Entre 2 y 6 notas separadas por comas. Se aceptan sostenidos y bemoles, por ejemplo Fa# o Sib.</p>
+                           value="{{ old('audio_notas_objetivo') }}" placeholder="Ej: Do4, Mi4, Sol4">
+                    <p class="field-help text-sm text-muted">Entre 2 y 6 notas con octava, separadas por comas. Ejemplos: Fa#4 o Sib3.</p>
                     @error('audio_notas_objetivo') <p class="error">{{ $message }}</p> @enderror
                 </div>
             </div>
