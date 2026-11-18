@@ -1,7 +1,7 @@
 # Modalidades de Ejercicios Disponibles
 
-> **Rama:** `feat/ejercicios-variedad`  
-> **PR:** `feat(ejercicios): ampliar modalidades de practica musical`  
+> **Rama:** `feat/ejercicios-variedad`
+> **PR:** `feat(ejercicios): ampliar modalidades de practica musical`
 > **Revisora:** Camila
 
 ---
@@ -106,4 +106,3 @@ Intento guardado + Progreso actualizado
 | Intervalos Armónicos | Cálculo de Intervalos Armónicos | `clasica`, `seleccionar_intervalo`, `detectar_error` |
 | **Acordes Alterados** *(nuevo)* | Acordes Disminuidos y Aumentados | `clasica`, `detectar_error` |
 | **Acordes Suspendidos** *(nuevo)* | Acordes Suspendidos (sus2 y sus4) | `completar_secuencia`, `verdadero_falso` |
-
