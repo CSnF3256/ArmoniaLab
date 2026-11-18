@@ -78,7 +78,7 @@ class AdminEjercicioController extends Controller
                 'max:100',
                 function (string $attribute, mixed $value, \Closure $fail): void {
                     if (! $this->notasDeAudioValidas((string) $value)) {
-                        $fail('Las notas objetivo deben estar separadas por comas y usar nombres como Do, Fa# o Sib.');
+                        $fail('Las notas objetivo deben incluir octava y estar separadas por comas, por ejemplo Do4, Fa#4 o Sib3.');
                     }
                 },
             ],
@@ -191,7 +191,7 @@ class AdminEjercicioController extends Controller
                 'max:100',
                 function (string $attribute, mixed $value, \Closure $fail): void {
                     if (! $this->notasDeAudioValidas((string) $value)) {
-                        $fail('Las notas objetivo deben estar separadas por comas y usar nombres como Do, Fa# o Sib.');
+                        $fail('Las notas objetivo deben incluir octava y estar separadas por comas, por ejemplo Do4, Fa#4 o Sib3.');
                     }
                 },
             ],
@@ -209,12 +209,12 @@ class AdminEjercicioController extends Controller
             'habilidad' => $validated['habilidad'],
             'dificultad' => $validated['dificultad'],
             'datos_pregunta' => [
-                'opciones' => [
+                'opciones' => array_values(array_filter([
                     $validated['opcion_1'],
                     $validated['opcion_2'],
-                    $validated['opcion_3'],
-                    $validated['opcion_4'],
-                ],
+                    $validated['opcion_3'] ?? null,
+                    $validated['opcion_4'] ?? null,
+                ], fn ($opcion) => ! is_null($opcion) && $opcion !== '')),
             ],
             'metadata' => array_filter([
                 'pista' => $validated['metadata_pista'] ?? null,
@@ -249,20 +249,43 @@ class AdminEjercicioController extends Controller
     private function notasDeAudioValidas(string $value): bool
     {
         $notas = $this->normalizarNotasDeAudio($value);
-        $permitidas = ['Do', 'Do#', 'Reb', 'Re', 'Re#', 'Mib', 'Mi', 'Fa', 'Fa#', 'Solb', 'Sol', 'Sol#', 'Lab', 'La', 'La#', 'Sib', 'Si'];
+        $clases = [
+            'Do' => 0, 'Do#' => 1, 'Reb' => 1, 'Re' => 2, 'Re#' => 3, 'Mib' => 3,
+            'Mi' => 4, 'Fa' => 5, 'Fa#' => 6, 'Solb' => 6, 'Sol' => 7,
+            'Sol#' => 8, 'Lab' => 8, 'La' => 9, 'La#' => 10, 'Sib' => 10, 'Si' => 11,
+        ];
+        $frecuencias = [];
+
+        foreach ($notas as $nota) {
+            if (! preg_match('/^(.+)([2-6])$/u', $nota, $coincidencia) || ! isset($clases[$coincidencia[1]])) {
+                return false;
+            }
+
+            $frecuencias[] = $clases[$coincidencia[1]].':'.$coincidencia[2];
+        }
 
         return count($notas) >= 2
             && count($notas) <= 6
-            && count($notas) === count(array_unique($notas))
-            && empty(array_diff($notas, $permitidas));
+            && count($frecuencias) === count(array_unique($frecuencias));
     }
 
     /** @return array<int, string> */
     private function normalizarNotasDeAudio(string $value): array
     {
-        return array_values(array_filter(array_map(
-            fn (string $nota): string => ucfirst(strtolower(trim($nota))),
-            explode(',', $value)
-        )));
+        $nombres = [
+            'do' => 'Do', 'do#' => 'Do#', 'reb' => 'Reb', 're' => 'Re', 're#' => 'Re#', 'mib' => 'Mib',
+            'mi' => 'Mi', 'fa' => 'Fa', 'fa#' => 'Fa#', 'solb' => 'Solb', 'sol' => 'Sol',
+            'sol#' => 'Sol#', 'lab' => 'Lab', 'la' => 'La', 'la#' => 'La#', 'sib' => 'Sib', 'si' => 'Si',
+        ];
+
+        return array_values(array_filter(array_map(function (string $nota) use ($nombres): string {
+            $nota = strtolower(trim($nota));
+
+            if (preg_match('/^([a-z]+#?)([2-6])$/u', $nota, $coincidencia) && isset($nombres[$coincidencia[1]])) {
+                return $nombres[$coincidencia[1]].$coincidencia[2];
+            }
+
+            return ucfirst($nota);
+        }, explode(',', $value))));
     }
 }

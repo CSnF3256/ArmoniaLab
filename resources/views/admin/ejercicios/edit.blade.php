@@ -121,8 +121,8 @@
                     <label for="audio_notas_objetivo">Notas que forman el acorde *</label>
                     <input id="audio_notas_objetivo" name="audio_notas_objetivo" type="text"
                            value="{{ old('audio_notas_objetivo', implode(', ', $ejercicio->metadata['audio_notas_objetivo'] ?? [])) }}"
-                           placeholder="Ej: Do, Mi, Sol">
-                    <p class="field-help text-sm text-muted">Entre 2 y 6 notas separadas por comas.</p>
+                           placeholder="Ej: Do4, Mi4, Sol4">
+                    <p class="field-help text-sm text-muted">Entre 2 y 6 notas con octava, separadas por comas.</p>
                     @error('audio_notas_objetivo') <p class="error">{{ $message }}</p> @enderror
                 </div>
             </div>
@@ -137,8 +137,8 @@
                 <h3>Opciones de Respuesta</h3>
                 @for($i = 0; $i < 4; $i++)
                     <div class="mt-2">
-                        <label for="opcion_{{ $i + 1 }}">Opción {{ chr(65 + $i) }} *</label>
-                        <input id="opcion_{{ $i + 1 }}" name="opcion_{{ $i + 1 }}" type="text" value="{{ old('opcion_'.($i + 1), $opciones[$i]) }}" required>
+                        <label for="opcion_{{ $i + 1 }}">Opción {{ chr(65 + $i) }} {{ $i < 2 ? '*' : '(opcional)' }}</label>
+                        <input id="opcion_{{ $i + 1 }}" name="opcion_{{ $i + 1 }}" type="text" value="{{ old('opcion_'.($i + 1), $opciones[$i] ?? '') }}" @if($i < 2) required @endif>
                         @error('opcion_'.($i + 1)) <p class="error">{{ $message }}</p> @enderror
                     </div>
                 @endfor

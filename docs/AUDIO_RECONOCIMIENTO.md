@@ -9,7 +9,7 @@ ArmoníaLab permite que el estudiante toque un acorde y reciba retroalimentació
 En el formulario de ejercicios, el docente activa **Reconocimiento de acorde por micrófono** e ingresa las notas separadas por comas:
 
 ```text
-Do, Mi, Sol
+Do4, Mi4, Sol4
 ```
 
 Laravel valida en el servidor que:
@@ -17,14 +17,15 @@ Laravel valida en el servidor que:
 - existan entre 2 y 6 notas;
 - no haya notas repetidas;
 - cada nota pertenezca al catálogo admitido;
-- se utilicen nombres como `Do`, `Fa#` o `Sib`.
+- cada nota incluya una octava entre 2 y 6;
+- se utilicen nombres como `Do4`, `Fa#4` o `Sib3`.
 
 La configuración se guarda en el campo JSON `metadata` del ejercicio:
 
 ```json
 {
   "audio_captura": true,
-  "audio_notas_objetivo": ["Do", "Mi", "Sol"]
+  "audio_notas_objetivo": ["Do4", "Mi4", "Sol4"]
 }
 ```
 
@@ -32,10 +33,11 @@ La configuración se guarda en el campo JSON `metadata` del ejercicio:
 
 1. El navegador solicita permiso mediante `navigator.mediaDevices.getUserMedia()`.
 2. `AudioContext` conecta el micrófono con un `AnalyserNode`.
-3. Una FFT de 8192 muestras transforma el sonido en energía por frecuencia.
-4. Las frecuencias de las octavas musicales se relacionan con sus clases de nota.
-5. La aplicación compara las notas detectadas con `audio_notas_objetivo`.
-6. El acorde se confirma después de seis lecturas completas consecutivas para reducir resultados inestables.
+3. El nivel de entrada se calcula con RMS sobre la señal temporal.
+4. Una FFT de 8192 muestras transforma el sonido en energía por frecuencia.
+5. Cada nombre y octava se convierte a una frecuencia musical específica.
+6. La aplicación compara las notas detectadas con `audio_notas_objetivo`.
+7. El acorde se confirma después de seis lecturas completas consecutivas para reducir resultados inestables.
 
 ## Privacidad y seguridad
 
@@ -47,7 +49,7 @@ La configuración se guarda en el campo JSON `metadata` del ejercicio:
 
 ## Alcance de esta versión
 
-Es un prototipo educativo basado en análisis espectral. El resultado depende del micrófono, el ruido, la afinación y el instrumento. No reemplaza un afinador profesional ni un modelo especializado de reconocimiento musical.
+Es un prototipo educativo basado en análisis espectral. El estudiante debe tocar la disposición de notas y octavas configurada por el docente. El resultado depende del micrófono, el ruido, la afinación y el instrumento. No reemplaza un afinador profesional ni un modelo especializado de reconocimiento musical.
 
 ## Archivos principales
 

@@ -12,7 +12,7 @@ use Tests\TestCase;
 /**
  * test(ejercicios): cubrir nuevas modalidades
  *
- * Pruebas de Feature que verifican que las seis modalidades de ejercicios
+ * Pruebas de Feature que verifican las nueve modalidades de ejercicios
  * (clasica, completar_secuencia, seleccionar_intervalo, verdadero_falso,
  * ordenar_notas, detectar_error) funcionan correctamente con la autocorrección
  * de back-end, que la validación de modalidades inválidas rechaza la creación
@@ -23,29 +23,32 @@ class EjercicioModalidadesTest extends TestCase
     use RefreshDatabase;
 
     protected User $estudiante;
+
     protected User $admin;
+
     protected Course $curso;
+
     protected Leccion $leccion;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $docente         = User::factory()->create(['role' => 'docente']);
-        $this->admin     = User::factory()->create(['role' => 'admin']);
+        $docente = User::factory()->create(['role' => 'docente']);
+        $this->admin = User::factory()->create(['role' => 'admin']);
         $this->estudiante = User::factory()->create(['role' => 'estudiante']);
 
         $this->curso = Course::create([
-            'user_id'     => $docente->id,
-            'title'       => 'Curso de Modalidades',
+            'user_id' => $docente->id,
+            'title' => 'Curso de Modalidades',
             'description' => 'Pruebas de modalidades',
-            'level'       => 'Principiante',
-            'status'      => 'Publicado',
+            'level' => 'Principiante',
+            'status' => 'Publicado',
         ]);
 
         $this->leccion = Leccion::create([
             'course_id' => $this->curso->id,
-            'titulo'    => 'Lección de modalidades',
+            'titulo' => 'Lección de modalidades',
             'contenido' => 'Teoría',
             'habilidad' => 'Tríadas Mayores',
         ]);
@@ -56,25 +59,25 @@ class EjercicioModalidadesTest extends TestCase
     private function crearEjercicio(array $overrides = []): Ejercicio
     {
         return Ejercicio::create(array_merge([
-            'leccion_id'       => $this->leccion->id,
-            'pregunta'         => 'Pregunta de prueba',
-            'tipo'             => 'opcion_multiple',
-            'modalidad'        => 'clasica',
-            'habilidad'        => 'Tríadas Mayores',
-            'dificultad'       => 'Fácil',
-            'datos_pregunta'   => ['opciones' => ['Do - Mi - Sol', 'Do - Fa - La']],
+            'leccion_id' => $this->leccion->id,
+            'pregunta' => 'Pregunta de prueba',
+            'tipo' => 'opcion_multiple',
+            'modalidad' => 'clasica',
+            'habilidad' => 'Tríadas Mayores',
+            'dificultad' => 'Fácil',
+            'datos_pregunta' => ['opciones' => ['Do - Mi - Sol', 'Do - Fa - La']],
             'respuesta_correcta' => 'Do - Mi - Sol',
-            'explicacion'      => 'Fórmula [0, 4, 7].',
-            'puntos'           => 10,
+            'explicacion' => 'Fórmula [0, 4, 7].',
+            'puntos' => 10,
         ], $overrides));
     }
 
     // ─── 1. Catálogo de modalidades ─────────────────────────────────────────
 
     /**
-     * El modelo Ejercicio expone exactamente seis modalidades canónicas.
+     * El modelo Ejercicio expone exactamente nueve modalidades canónicas.
      */
-    public function test_modelo_expone_seis_modalidades(): void
+    public function test_modelo_expone_nueve_modalidades(): void
     {
         $modalidades = Ejercicio::modalidades();
 
@@ -107,20 +110,20 @@ class EjercicioModalidadesTest extends TestCase
     public function test_modalidad_verdadero_falso_acepta_respuesta_verdadero(): void
     {
         $ej = $this->crearEjercicio([
-            'modalidad'        => 'verdadero_falso',
-            'datos_pregunta'   => ['opciones' => ['Verdadero', 'Falso']],
+            'modalidad' => 'verdadero_falso',
+            'datos_pregunta' => ['opciones' => ['Verdadero', 'Falso']],
             'respuesta_correcta' => 'Verdadero',
         ]);
 
         $response = $this->actingAs($this->estudiante)->post("/ejercicios/{$ej->id}/responder", [
-            'respuesta'       => 'Verdadero',
+            'respuesta' => 'Verdadero',
             'tiempo_segundos' => 5,
         ]);
 
         $response->assertSessionHas('resultado_exito');
         $this->assertDatabaseHas('intentos', [
             'ejercicio_id' => $ej->id,
-            'es_correcta'  => true,
+            'es_correcta' => true,
         ]);
     }
 
@@ -130,8 +133,8 @@ class EjercicioModalidadesTest extends TestCase
     public function test_modalidad_verdadero_falso_reprueba_respuesta_incorrecta(): void
     {
         $ej = $this->crearEjercicio([
-            'modalidad'        => 'verdadero_falso',
-            'datos_pregunta'   => ['opciones' => ['Verdadero', 'Falso']],
+            'modalidad' => 'verdadero_falso',
+            'datos_pregunta' => ['opciones' => ['Verdadero', 'Falso']],
             'respuesta_correcta' => 'Verdadero',
         ]);
 
@@ -142,7 +145,7 @@ class EjercicioModalidadesTest extends TestCase
         $response->assertSessionHas('resultado_error');
         $this->assertDatabaseHas('intentos', [
             'ejercicio_id' => $ej->id,
-            'es_correcta'  => false,
+            'es_correcta' => false,
             'puntaje_obtenido' => 0,
         ]);
     }
@@ -155,10 +158,10 @@ class EjercicioModalidadesTest extends TestCase
     public function test_modalidad_ordenar_notas_aprueba_secuencia_correcta(): void
     {
         $ej = $this->crearEjercicio([
-            'modalidad'        => 'ordenar_notas',
-            'datos_pregunta'   => ['opciones' => ['La', 'Do', 'Sol', 'Mi']],
+            'modalidad' => 'ordenar_notas',
+            'datos_pregunta' => ['opciones' => ['La', 'Do', 'Sol', 'Mi']],
             'respuesta_correcta' => 'La - Do - Mi - Sol',
-            'puntos'           => 20,
+            'puntos' => 20,
         ]);
 
         $response = $this->actingAs($this->estudiante)->post("/ejercicios/{$ej->id}/responder", [
@@ -167,8 +170,8 @@ class EjercicioModalidadesTest extends TestCase
 
         $response->assertSessionHas('resultado_exito');
         $this->assertDatabaseHas('intentos', [
-            'ejercicio_id'    => $ej->id,
-            'es_correcta'     => true,
+            'ejercicio_id' => $ej->id,
+            'es_correcta' => true,
             'puntaje_obtenido' => 20,
         ]);
     }
@@ -181,10 +184,10 @@ class EjercicioModalidadesTest extends TestCase
     public function test_modalidad_seleccionar_intervalo_evalua_semitonos(): void
     {
         $ej = $this->crearEjercicio([
-            'modalidad'        => 'seleccionar_intervalo',
-            'datos_pregunta'   => ['opciones' => ['5', '6', '7', '8']],
+            'modalidad' => 'seleccionar_intervalo',
+            'datos_pregunta' => ['opciones' => ['5', '6', '7', '8']],
             'respuesta_correcta' => '7',
-            'puntos'           => 10,
+            'puntos' => 10,
         ]);
 
         $response = $this->actingAs($this->estudiante)->post("/ejercicios/{$ej->id}/responder", [
@@ -194,7 +197,7 @@ class EjercicioModalidadesTest extends TestCase
         $response->assertSessionHas('resultado_exito');
         $this->assertDatabaseHas('intentos', [
             'ejercicio_id' => $ej->id,
-            'es_correcta'  => true,
+            'es_correcta' => true,
         ]);
     }
 
@@ -206,8 +209,8 @@ class EjercicioModalidadesTest extends TestCase
     public function test_modalidad_completar_secuencia_detecta_nota_faltante(): void
     {
         $ej = $this->crearEjercicio([
-            'modalidad'        => 'completar_secuencia',
-            'datos_pregunta'   => ['opciones' => ['Re - Sol - La', 'Re - Fa# - La', 'Re - Mi - La', 'Re - Sol - Si']],
+            'modalidad' => 'completar_secuencia',
+            'datos_pregunta' => ['opciones' => ['Re - Sol - La', 'Re - Fa# - La', 'Re - Mi - La', 'Re - Sol - Si']],
             'respuesta_correcta' => 'Re - Sol - La',
         ]);
 
@@ -226,10 +229,10 @@ class EjercicioModalidadesTest extends TestCase
     public function test_modalidad_detectar_error_identifica_nota_incorrecta(): void
     {
         $ej = $this->crearEjercicio([
-            'modalidad'        => 'detectar_error',
-            'datos_pregunta'   => ['opciones' => ['Do', 'Mi', 'Sol#', 'Sol']],
+            'modalidad' => 'detectar_error',
+            'datos_pregunta' => ['opciones' => ['Do', 'Mi', 'Sol#', 'Sol']],
             'respuesta_correcta' => 'Sol',
-            'puntos'           => 15,
+            'puntos' => 15,
         ]);
 
         $response = $this->actingAs($this->estudiante)->post("/ejercicios/{$ej->id}/responder", [
@@ -238,8 +241,8 @@ class EjercicioModalidadesTest extends TestCase
 
         $response->assertSessionHas('resultado_exito');
         $this->assertDatabaseHas('intentos', [
-            'ejercicio_id'    => $ej->id,
-            'es_correcta'     => true,
+            'ejercicio_id' => $ej->id,
+            'es_correcta' => true,
             'puntaje_obtenido' => 15,
         ]);
     }
@@ -253,8 +256,8 @@ class EjercicioModalidadesTest extends TestCase
     {
         $ej = $this->crearEjercicio([
             'modalidad' => 'clasica',
-            'metadata'  => [
-                'pista'         => 'Recuerda la fórmula [0, 4, 7]',
+            'metadata' => [
+                'pista' => 'Recuerda la fórmula [0, 4, 7]',
                 'tiempo_limite' => 60,
             ],
         ]);
@@ -274,19 +277,19 @@ class EjercicioModalidadesTest extends TestCase
     {
         // Crear una lección para el dropdown dependiente
         $response = $this->actingAs($this->admin)->post(route('admin.ejercicios.store'), [
-            'course_id'         => $this->curso->id,
-            'leccion_id'        => $this->leccion->id,
-            'pregunta'          => 'Pregunta de prueba',
-            'tipo'              => 'opcion_multiple',
-            'modalidad'         => 'modalidad_inexistente', // ← inválida
-            'habilidad'         => 'Tríadas Mayores',
-            'dificultad'        => 'Fácil',
-            'opcion_1'          => 'Do - Mi - Sol',
-            'opcion_2'          => 'Do - Fa - La',
-            'opcion_3'          => 'Re - Fa - La',
-            'opcion_4'          => 'Mi - Sol - Si',
+            'course_id' => $this->curso->id,
+            'leccion_id' => $this->leccion->id,
+            'pregunta' => 'Pregunta de prueba',
+            'tipo' => 'opcion_multiple',
+            'modalidad' => 'modalidad_inexistente', // ← inválida
+            'habilidad' => 'Tríadas Mayores',
+            'dificultad' => 'Fácil',
+            'opcion_1' => 'Do - Mi - Sol',
+            'opcion_2' => 'Do - Fa - La',
+            'opcion_3' => 'Re - Fa - La',
+            'opcion_4' => 'Mi - Sol - Si',
             'respuesta_correcta' => 'Do - Mi - Sol',
-            'puntos'            => 10,
+            'puntos' => 10,
         ]);
 
         $response->assertSessionHasErrors(['modalidad']);
