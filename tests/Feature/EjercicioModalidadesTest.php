@@ -307,4 +307,3 @@ class EjercicioModalidadesTest extends TestCase
         $response->assertSee('Verdadero o Falso');
     }
 }
-
