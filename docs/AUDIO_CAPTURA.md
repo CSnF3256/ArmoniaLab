@@ -1,6 +1,6 @@
 # Audio Captura — ArmoníaLab
 
-> Rama: `feat/audio-captura` | Revisora: **Camila**  
+> Rama: `feat/audio-captura` | Revisora: **Camila**
 > PR: `feat(audio): incorporar entrada desde el micrófono`
 
 ## Descripción
@@ -130,10 +130,10 @@ Archivo: `tests/Feature/AudioCapturaTest.php`
 
 ## Pull Request
 
-**Título:** `feat(audio): incorporar entrada desde el micrófono`  
-**Rama base:** `main`  
-**Rama fuente:** `feat/audio-captura`  
-**Revisora:** Camila  
+**Título:** `feat(audio): incorporar entrada desde el micrófono`
+**Rama base:** `main`
+**Rama fuente:** `feat/audio-captura`
+**Revisora:** Camila
 
 ### Checklist
 - [x] Solicitud de permisos con manejo de errores
@@ -143,4 +143,3 @@ Archivo: `tests/Feature/AudioCapturaTest.php`
 - [x] Tests de Feature (12 casos)
 - [x] Documentación
 - [x] Sin cambios a la lógica existente
-

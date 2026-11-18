@@ -94,8 +94,7 @@ class EjercicioModalidadesTest extends TestCase
      */
     public function test_modalidad_default_es_clasica(): void
     {
-        // No pasamos 'modalidad', la columna tiene default 'clasica' en la migración
-        $ej = $this->crearEjercicio(['modalidad' => 'clasica']);
+        $ej = $this->crearEjercicio(); // Sin pasar 'modalidad' => 'clasica'
 
         $this->assertSame('clasica', $ej->fresh()->modalidad);
     }
