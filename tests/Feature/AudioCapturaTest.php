@@ -68,7 +68,7 @@ class AudioCapturaTest extends TestCase
             'modalidad' => 'clasica',
             'metadata' => [
                 'audio_captura' => true,
-                'audio_notas_objetivo' => ['Do', 'Mi', 'Sol'],
+                'audio_notas_objetivo' => ['Do4', 'Mi4', 'Sol4'],
                 'pista' => 'Escucha el acorde',
             ],
         ], $overrides));
@@ -121,9 +121,10 @@ class AudioCapturaTest extends TestCase
         $response->assertSee('audio-visualizer', false);
         $response->assertSee('getUserMedia', false);
         $response->assertSee('audio-recognition-panel', false);
-        $response->assertSee('Do · Mi · Sol', false);
+        $response->assertSee('Do4 · Mi4 · Sol4', false);
         $response->assertSee('analyser.fftSize = 8192', false);
-        $response->assertSee('energiaDeClase', false);
+        $response->assertSee('energiaDeNota', false);
+        $response->assertSee('getFloatTimeDomainData', false);
     }
 
     // ── Test 3: Ejercicio SIN audio NO incluye el panel de micrófono ────
@@ -225,7 +226,7 @@ class AudioCapturaTest extends TestCase
                 'puntos' => 10,
                 'metadata_pista' => 'Escucha atentamente',
                 'audio_captura' => true,
-                'audio_notas_objetivo' => 'Do, Mi, Sol',
+                'audio_notas_objetivo' => 'Do4, Mi4, Sol4',
             ]);
 
         $response->assertStatus(302);
@@ -233,10 +234,10 @@ class AudioCapturaTest extends TestCase
 
         $ejercicio = Ejercicio::latest('id')->firstOrFail();
         $this->assertTrue($ejercicio->metadata['audio_captura']);
-        $this->assertSame(['Do', 'Mi', 'Sol'], $ejercicio->metadata['audio_notas_objetivo']);
+        $this->assertSame(['Do4', 'Mi4', 'Sol4'], $ejercicio->metadata['audio_notas_objetivo']);
     }
 
-    public function test_admin_debe_indicar_notas_validas_para_reconocimiento(): void
+    public function test_admin_rechaza_notas_sin_octava_para_reconocimiento(): void
     {
         $response = $this->actingAs($this->admin)
             ->post(route('admin.ejercicios.store'), [
@@ -252,7 +253,7 @@ class AudioCapturaTest extends TestCase
                 'respuesta_correcta' => 'Do Mayor',
                 'puntos' => 10,
                 'audio_captura' => true,
-                'audio_notas_objetivo' => 'Do, Nota inventada, Sol',
+                'audio_notas_objetivo' => 'Do, Mi, Sol',
             ]);
 
         $response->assertSessionHasErrors(['audio_notas_objetivo']);

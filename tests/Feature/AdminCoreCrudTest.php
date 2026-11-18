@@ -124,6 +124,33 @@ class AdminCoreCrudTest extends TestCase
         ]);
     }
 
+    public function test_admin_puede_actualizar_ejercicio_con_dos_opciones(): void
+    {
+        [$admin, $curso, $leccion, $tipo, $ejercicio] = $this->crearDatosDeEjercicio();
+
+        $response = $this->actingAs($admin)
+            ->put(route('admin.ejercicios.update', $ejercicio), [
+                'course_id' => $curso->id,
+                'leccion_id' => $leccion->id,
+                'tipo_acorde_id' => $tipo->id,
+                'pregunta' => 'Pregunta de dos opciones',
+                'tipo' => 'opcion_multiple',
+                'habilidad' => 'Tríadas',
+                'dificultad' => 'Fácil',
+                'modalidad' => 'clasica',
+                'opcion_1' => 'Verdadero',
+                'opcion_2' => 'Falso',
+                'respuesta_correcta' => 'Verdadero',
+                'puntos' => 10,
+            ]);
+
+        $response->assertRedirect(route('admin.ejercicios.index'));
+        $this->assertSame(
+            ['Verdadero', 'Falso'],
+            $ejercicio->fresh()->datos_pregunta['opciones']
+        );
+    }
+
     private function crearDatosDeEjercicio(): array
     {
         $admin = User::factory()->create(['role' => 'admin']);
