@@ -122,8 +122,10 @@ class AudioCapturaTest extends TestCase
         $response->assertSee('getUserMedia', false);
         $response->assertSee('audio-recognition-panel', false);
         $response->assertSee('Do4 · Mi4 · Sol4', false);
-        $response->assertSee('analyser.fftSize = 8192', false);
-        $response->assertSee('energiaDeNota', false);
+        $response->assertSee('analyser.fftSize = 32768', false);
+        $response->assertSee('audio-calibrate-btn', false);
+        $response->assertSee('audio-confidence', false);
+        $response->assertSee('detectarNotaAjena', false);
         $response->assertSee('getFloatTimeDomainData', false);
     }
 
