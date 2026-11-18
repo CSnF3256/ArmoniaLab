@@ -177,6 +177,23 @@
     background: #dcfce7;
     color: #166534;
 }
+.audio-recognition-result.is-calibrating {
+    background: #fff7ed;
+    color: #9a3412;
+}
+.audio-confidence {
+    font-variant-numeric: tabular-nums;
+}
+.btn-audio-calibrate {
+    display: none;
+    border: 1px solid #c4b5fd;
+    background: #f5f3ff;
+    color: #5b21b6;
+    padding: .6rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
 </style>
 
 <div class="card audio-captura-card mt-4" id="audio-captura-panel">
@@ -199,6 +216,9 @@
         </button>
         <button type="button" class="btn-mic-stop" id="audio-stop-btn">
             ⏹ Detener captura
+        </button>
+        <button type="button" class="btn-audio-calibrate" id="audio-calibrate-btn">
+            🎚️ Recalibrar ruido
         </button>
     </div>
 
@@ -226,6 +246,10 @@
                 <span class="audio-recognition-label">Notas detectadas</span>
                 <strong id="audio-detected-notes">—</strong>
             </div>
+            <div class="audio-recognition-item">
+                <span class="audio-recognition-label">Confianza</span>
+                <strong class="audio-confidence" id="audio-confidence">0%</strong>
+            </div>
         </div>
         <div class="audio-recognition-result" id="audio-recognition-result" aria-live="polite">
             Activa el micrófono y toca el acorde de forma sostenida.
@@ -242,6 +266,7 @@
 (function initAudioCaptura() {
     const startBtn    = document.getElementById('audio-start-btn');
     const stopBtn     = document.getElementById('audio-stop-btn');
+    const calibrateBtn = document.getElementById('audio-calibrate-btn');
     const statusBadge = document.getElementById('audio-device-status');
     const errorBox    = document.getElementById('audio-error-msg');
     const levelBar    = document.getElementById('audio-level-bar');
@@ -249,6 +274,7 @@
     const canvas      = document.getElementById('audio-visualizer');
     const detectedBox = document.getElementById('audio-detected-notes');
     const resultBox   = document.getElementById('audio-recognition-result');
+    const confidenceBox = document.getElementById('audio-confidence');
     const targetNotes = @json(array_values($ejercicio->metadata['audio_notas_objetivo'] ?? []));
 
     if (!startBtn || !canvas) return;
@@ -258,6 +284,11 @@
     let analyser = null;
     let animationId = null;
     let framesCorrectos = 0;
+    let calibrando = false;
+    let muestrasCalibracion = 0;
+    let ruidoRms = 0;
+    let ruidoPorNota = {};
+    const totalMuestrasCalibracion = 15;
 
     const pitchClasses = {
         'Do': 0, 'Do#': 1, 'Reb': 1, 'Re': 2, 'Re#': 3, 'Mib': 3,
@@ -290,6 +321,7 @@
 
             startBtn.style.display = 'none';
             stopBtn.style.display = 'inline-flex';
+            if (calibrateBtn) calibrateBtn.style.display = 'inline-flex';
 
             iniciarVisualizador(mediaStream);
         } catch (err) {
@@ -301,7 +333,7 @@
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioContext.createMediaStreamSource(stream);
         analyser = audioContext.createAnalyser();
-        analyser.fftSize = 8192;
+        analyser.fftSize = 32768;
         analyser.smoothingTimeConstant = 0.72;
         source.connect(analyser);
 
@@ -310,27 +342,30 @@
         const timeData = new Float32Array(analyser.fftSize);
         const ctx = canvas.getContext('2d');
         let frame = 0;
+        let rmsActual = 0;
+
+        iniciarCalibracion();
 
         function renderFrame() {
             animationId = requestAnimationFrame(renderFrame);
             analyser.getByteFrequencyData(dataArray);
-            analyser.getFloatTimeDomainData(timeData);
-
-            let sumaCuadrados = 0;
-            for (let i = 0; i < timeData.length; i++) sumaCuadrados += timeData[i] * timeData[i];
-            const rms = Math.sqrt(sumaCuadrados / timeData.length);
-            const pct = Math.min(100, Math.round(rms * 500));
-
-            if (levelBar) levelBar.style.width = pct + '%';
-            if (dbLabel) dbLabel.textContent = pct + '%';
 
             frame++;
-            if (frame % 6 === 0) analizarAcorde(dataArray);
+            if (frame % 3 === 0) {
+                analyser.getFloatTimeDomainData(timeData);
+                let sumaCuadrados = 0;
+                for (let i = 0; i < timeData.length; i++) sumaCuadrados += timeData[i] * timeData[i];
+                rmsActual = Math.sqrt(sumaCuadrados / timeData.length);
+                const pct = Math.min(100, Math.round(rmsActual * 500));
+                if (levelBar) levelBar.style.width = pct + '%';
+                if (dbLabel) dbLabel.textContent = pct + '%';
+            }
+            if (frame % 6 === 0) analizarAcorde(dataArray, rmsActual);
 
             ctx.fillStyle = '#0f172a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const visualBins = Math.min(160, bufferLength);
+            const visualBins = Math.min(240, bufferLength);
             const barWidth = canvas.width / visualBins;
             let x = 0;
             for (let i = 0; i < visualBins; i++) {
@@ -343,60 +378,155 @@
         renderFrame();
     }
 
-    function analizarAcorde(dataArray) {
+    function iniciarCalibracion() {
+        calibrando = true;
+        muestrasCalibracion = 0;
+        ruidoRms = 0;
+        ruidoPorNota = Object.fromEntries(targetNotes.map(nota => [nota, 0]));
+        framesCorrectos = 0;
+        if (confidenceBox) confidenceBox.textContent = '0%';
+        if (detectedBox) detectedBox.textContent = 'Calibrando…';
+        if (resultBox) {
+            resultBox.textContent = 'Mantén silencio durante la calibración del ruido ambiental…';
+            resultBox.classList.remove('is-correct');
+            resultBox.classList.add('is-calibrating');
+        }
+    }
+
+    function analizarAcorde(dataArray, rms) {
         if (!targetNotes.length || !analyser || !audioContext) return;
 
-        let maximo = 0;
-        for (let i = 0; i < dataArray.length; i++) maximo = Math.max(maximo, dataArray[i]);
+        if (calibrando) {
+            muestrasCalibracion++;
+            ruidoRms += rms;
+            targetNotes.forEach(nota => {
+                ruidoPorNota[nota] += medirNota(nota, dataArray).energia;
+            });
 
-        if (maximo < 55) {
+            const progreso = Math.round((muestrasCalibracion / totalMuestrasCalibracion) * 100);
+            if (confidenceBox) confidenceBox.textContent = progreso + '% calibrado';
+
+            if (muestrasCalibracion >= totalMuestrasCalibracion) {
+                ruidoRms /= totalMuestrasCalibracion;
+                targetNotes.forEach(nota => {
+                    ruidoPorNota[nota] /= totalMuestrasCalibracion;
+                });
+                calibrando = false;
+                detectedBox.textContent = '—';
+                confidenceBox.textContent = '0%';
+                resultBox.textContent = 'Calibración lista. Ahora toca el acorde de forma sostenida.';
+                resultBox.classList.remove('is-calibrating');
+            }
+            return;
+        }
+
+        const umbralRms = Math.max(0.015, ruidoRms * 3.5);
+        if (rms < umbralRms) {
             framesCorrectos = 0;
             detectedBox.textContent = 'Esperando sonido…';
-            resultBox.textContent = 'Toca el acorde con un volumen estable.';
+            confidenceBox.textContent = '0%';
+            resultBox.textContent = 'La señal está por debajo del ruido ambiental.';
             resultBox.classList.remove('is-correct');
             return;
         }
 
-        const umbral = Math.max(45, maximo * 0.25);
-        const detectadas = targetNotes.filter(nota => energiaDeNota(nota, dataArray) >= umbral);
-        detectedBox.textContent = detectadas.length ? detectadas.join(' · ') : 'Ninguna nota objetivo';
+        let maximo = 0;
+        for (let i = 0; i < dataArray.length; i++) maximo = Math.max(maximo, dataArray[i]);
 
-        if (detectadas.length === targetNotes.length) {
+        const lecturas = targetNotes.map(nota => {
+            const lectura = medirNota(nota, dataArray);
+            const umbral = Math.max(40, (ruidoPorNota[nota] || 0) * 2.5 + 15, maximo * 0.18);
+            const presente = lectura.energia >= umbral && lectura.prominencia >= 1.15;
+            const confianza = presente
+                ? Math.min(100, Math.round((lectura.energia / Math.max(umbral, 1)) * 60))
+                : Math.min(59, Math.round((lectura.energia / Math.max(umbral, 1)) * 60));
+            return { nota, ...lectura, presente, confianza };
+        });
+
+        const detectadas = lecturas.filter(lectura => lectura.presente).map(lectura => lectura.nota);
+        const confianza = lecturas.length ? Math.min(...lecturas.map(lectura => lectura.confianza)) : 0;
+        const notaAjena = detectarNotaAjena(dataArray, lecturas);
+        detectedBox.textContent = detectadas.length ? detectadas.join(' · ') : 'Ninguna nota objetivo';
+        confidenceBox.textContent = confianza + '%';
+
+        if (detectadas.length === targetNotes.length && !notaAjena) {
             framesCorrectos++;
         } else {
             framesCorrectos = Math.max(0, framesCorrectos - 1);
         }
 
-        if (framesCorrectos >= 6) {
+        if (framesCorrectos >= 12) {
             resultBox.textContent = '✅ ¡Acorde correcto! Se detectaron todas las notas objetivo.';
             resultBox.classList.add('is-correct');
         } else {
             const faltantes = targetNotes.filter(nota => !detectadas.includes(nota));
-            resultBox.textContent = faltantes.length
-                ? 'Sigue intentando. Faltan por detectar: ' + faltantes.join(', ') + '.'
-                : 'Mantén el acorde un momento para confirmar la lectura.';
+            resultBox.textContent = notaAjena
+                ? 'Se detectó una nota adicional (' + notaAjena + '). Toca únicamente la disposición objetivo.'
+                : faltantes.length
+                    ? 'Sigue intentando. Faltan por detectar: ' + faltantes.join(', ') + '.'
+                    : 'Mantén el acorde un momento para confirmar la lectura.';
             resultBox.classList.remove('is-correct');
         }
     }
 
-    function energiaDeNota(nota, dataArray) {
+    function especificacionDeNota(nota) {
         const coincidencia = /^(.+)([2-6])$/.exec(nota);
-        if (!coincidencia) return 0;
+        if (!coincidencia) return null;
 
         const pitchClass = pitchClasses[coincidencia[1]];
         const octava = Number(coincidencia[2]);
-        if (pitchClass === undefined) return 0;
+        if (pitchClass === undefined) return null;
 
-        const midi = (octava + 1) * 12 + pitchClass;
+        return { nota, midi: (octava + 1) * 12 + pitchClass };
+    }
+
+    function medirNota(nota, dataArray) {
+        const especificacion = especificacionDeNota(nota);
+        return especificacion ? medirMidi(especificacion.midi, dataArray) : { energia: 0, prominencia: 0 };
+    }
+
+    function medirMidi(midi, dataArray) {
         const frecuencia = 440 * Math.pow(2, (midi - 69) / 12);
-        const bin = Math.round(frecuencia * analyser.fftSize / audioContext.sampleRate);
+        const tolerancia = Math.pow(2, 35 / 1200);
+        const binMin = Math.max(1, Math.floor((frecuencia / tolerancia) * analyser.fftSize / audioContext.sampleRate));
+        const binMax = Math.min(dataArray.length - 2, Math.ceil((frecuencia * tolerancia) * analyser.fftSize / audioContext.sampleRate));
         let energia = 0;
 
-        for (let offset = -2; offset <= 2; offset++) {
-            energia = Math.max(energia, dataArray[bin + offset] || 0);
+        for (let bin = binMin; bin <= binMax; bin++) {
+            energia = Math.max(energia, dataArray[bin] || 0);
         }
 
-        return energia;
+        let vecindad = 0;
+        let muestras = 0;
+        for (let bin = Math.max(1, binMin - 8); bin <= Math.min(dataArray.length - 1, binMax + 8); bin++) {
+            if (bin >= binMin && bin <= binMax) continue;
+            vecindad += dataArray[bin] || 0;
+            muestras++;
+        }
+
+        const promedioVecindad = muestras ? vecindad / muestras : 0;
+        return { energia, prominencia: energia / Math.max(1, promedioVecindad) };
+    }
+
+    function detectarNotaAjena(dataArray, lecturasObjetivo) {
+        const especificaciones = targetNotes.map(especificacionDeNota).filter(Boolean);
+        if (!especificaciones.length) return null;
+
+        const midiObjetivo = new Set(especificaciones.map(item => item.midi));
+        const energiaObjetivo = Math.max(...lecturasObjetivo.map(item => item.energia), 0);
+        const midiMin = Math.min(...especificaciones.map(item => item.midi));
+        const midiMax = Math.max(...especificaciones.map(item => item.midi));
+        const nombres = ['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si'];
+
+        for (let midi = midiMin; midi <= midiMax; midi++) {
+            if (midiObjetivo.has(midi)) continue;
+            const lectura = medirMidi(midi, dataArray);
+            if (lectura.energia >= Math.max(55, energiaObjetivo * 0.78) && lectura.prominencia >= 1.25) {
+                return nombres[midi % 12] + (Math.floor(midi / 12) - 1);
+            }
+        }
+
+        return null;
     }
 
     function liberarMicrofono() {
@@ -415,15 +545,18 @@
         if (levelBar) levelBar.style.width = '0%';
         if (dbLabel) dbLabel.textContent = '0%';
         if (detectedBox) detectedBox.textContent = '—';
+        if (confidenceBox) confidenceBox.textContent = '0%';
         if (resultBox) {
             resultBox.textContent = 'Activa el micrófono y toca el acorde de forma sostenida.';
-            resultBox.classList.remove('is-correct');
+            resultBox.classList.remove('is-correct', 'is-calibrating');
         }
         framesCorrectos = 0;
+        calibrando = false;
         statusBadge.textContent = '⚪ Micrófono liberado';
         statusBadge.className = 'audio-device-badge';
         startBtn.style.display = 'inline-flex';
         stopBtn.style.display = 'none';
+        if (calibrateBtn) calibrateBtn.style.display = 'none';
     }
 
     function mostrarError(msg) {
@@ -435,6 +568,7 @@
 
     startBtn.addEventListener('click', solicitarMicrofono);
     stopBtn.addEventListener('click', liberarMicrofono);
+    if (calibrateBtn) calibrateBtn.addEventListener('click', iniciarCalibracion);
 
     // Liberar el micrófono automáticamente al salir del ejercicio
     window.addEventListener('beforeunload', liberarMicrofono);
