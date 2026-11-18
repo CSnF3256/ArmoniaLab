@@ -72,7 +72,7 @@
                 </div>
 
             @elseif($modalidad === 'ordenar_notas')
-                {{-- Modalidad: Ordenar notas (el estudiante escribe el orden correcto) --}}
+                {{-- Modalidad: Ordenar notas --}}
                 <div class="options-container">
                     <label class="options-label">Escribe las notas en el orden correcto (separadas por " - "):</label>
                     <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
@@ -87,7 +87,7 @@
                 </div>
 
             @elseif($modalidad === 'completar_secuencia')
-                {{-- Modalidad: Completar secuencia — elige la nota que falta --}}
+                {{-- Modalidad: Completar secuencia --}}
                 <div class="options-container">
                     <label class="options-label">Selecciona la nota que completa la secuencia:</label>
                     <div class="options-grid">
@@ -102,7 +102,7 @@
                 </div>
 
             @elseif($modalidad === 'seleccionar_intervalo')
-                {{-- Modalidad: Seleccionar intervalo — botones con semitonos --}}
+                {{-- Modalidad: Seleccionar intervalo --}}
                 <div class="options-container">
                     <label class="options-label">Selecciona el intervalo correcto en semitonos:</label>
                     <div class="options-grid" style="grid-template-columns: repeat(4, 1fr);">
@@ -132,17 +132,11 @@
                 </div>
 
             @elseif($modalidad === 'construccion_visual')
-                {{-- ══════════════════════════════════════════════════════════════
-                     MODALIDAD: Construcción Visual (Drag & Drop)
-                     El estudiante arrastra notas desde el banco al pentagrama.
-                     Al enviar, el campo oculto #respuesta lleva las notas
-                     colocadas en el pentagrama separadas por " - ".
-                ══════════════════════════════════════════════════════════════ --}}
+                {{-- MODALIDAD: Construcción Visual (Drag & Drop) --}}
                 <input type="hidden" name="respuesta" id="respuesta-dragdrop" value="">
                 <div class="dragdrop-exercise">
                     <p class="options-label">Arrastra las notas al pentagrama para construir el acorde. El orden importa (de grave a agudo).</p>
 
-                    {{-- Banco de notas disponibles --}}
                     <div class="nota-bank" id="nota-bank">
                         @foreach($opciones as $nota)
                             <div class="nota-token draggable" draggable="true" data-nota="{{ $nota }}" id="token-{{ $loop->index }}">
@@ -151,7 +145,6 @@
                         @endforeach
                     </div>
 
-                    {{-- Zona objetivo: pentagrama simplificado --}}
                     <div class="pentagrama-zona mt-3" id="pentagrama-zona">
                         <div class="pentagrama-label">🎼 Pentagrama — suelta las notas aquí en orden</div>
                         <div class="pentagrama-slots" id="pentagrama-slots">
@@ -165,7 +158,6 @@
                         <button type="button" class="button small secondary mt-2" id="btn-limpiar-pent">🗑 Limpiar</button>
                     </div>
 
-                    {{-- Validación visual de la respuesta armada --}}
                     <div class="dragdrop-preview mt-3" id="dragdrop-preview" style="display:none;">
                         <strong>Tu respuesta:</strong> <span id="preview-text" style="font-family:monospace;"></span>
                     </div>
@@ -176,18 +168,13 @@
                 </div>
 
             @elseif($modalidad === 'progresion_funcional')
-                {{-- ══════════════════════════════════════════════════════════════
-                     MODALIDAD: Progresiones Funcionales
-                     El estudiante ordena bloques de acordes arrastrándolos
-                     para formar la progresión correcta (I-IV-V-I, ii-V-I, etc.).
-                     Al enviar, el campo oculto lleva los acordes unidos por " > ".
-                ══════════════════════════════════════════════════════════════ --}}
+                {{-- MODALIDAD: Progresiones Funcionales --}}
                 <input type="hidden" name="respuesta" id="respuesta-progresion" value="">
                 <div class="progresion-exercise">
                     <p class="options-label">Arrastra los bloques de acordes para ordenar la progresión armónica correcta.</p>
 
                     @php
-                        $acorBloques = $opciones; // ej: ["Am", "F", "C", "G"]
+                        $acorBloques = $opciones;
                         $shuffled    = collect($acorBloques)->shuffle()->values()->all();
                         $reglasTxt   = $ejercicio->datos_pregunta['reglas'] ?? null;
                         $contextoProg = $ejercicio->datos_pregunta['contexto'] ?? null;
@@ -204,7 +191,6 @@
                         </div>
                     @endif
 
-                    {{-- Zona de ordenamiento --}}
                     <div class="progresion-board" id="progresion-board">
                         @foreach($shuffled as $idx => $acorde)
                             <div class="progresion-block chord-block" draggable="true"
@@ -215,18 +201,62 @@
                         @endforeach
                     </div>
 
-                    {{-- Flecha visual --}}
                     <div class="progresion-arrows mt-2" id="progresion-arrows" aria-hidden="true"></div>
 
-                    {{-- Preview de la progresión armada --}}
                     <div class="progresion-preview mt-3" id="progresion-preview" style="display:none;">
                         <strong>Progresión armada:</strong>
                         <span id="progresion-text" style="font-family:monospace;font-size:1.1rem;"></span>
                     </div>
                 </div>
 
+            @elseif($modalidad === 'sincronia_ritmica')
+                {{-- ══════════════════════════════════════════════════════════════
+                     MODALIDAD: Sincronía Rítmica (Melodía + Metrónomo)
+                ══════════════════════════════════════════════════════════════ --}}
+                @php
+                    $bpm = $ejercicio->datos_pregunta['bpm'] ?? 100;
+                    $offsetMs = $ejercicio->datos_pregunta['offset_ms'] ?? (
+                        str_contains(strtolower($ejercicio->respuesta_correcta), 'adelantad') ? -120 :
+                        (str_contains(strtolower($ejercicio->respuesta_correcta), 'atrasad') ? 135 : 0)
+                    );
+                    $opcionesRitmo = !empty($opciones) ? $opciones : ['A tiempo', 'Adelantada', 'Atrasada'];
+                @endphp
+                <div class="ritmo-exercise-box mb-4" data-bpm="{{ $bpm }}" data-offset="{{ $offsetMs }}">
+                    <div class="ritmo-header">
+                        <div>
+                            <span class="ritmo-badge">⏱ Tempo: <strong>{{ $bpm }} BPM</strong></span>
+                            <p class="text-sm text-muted mt-1 mb-0">Escucha el pulso del metrónomo (clicks) junto con la melodía e identifica si las notas suenan a tiempo, adelantadas o atrasadas.</p>
+                        </div>
+                        <button type="button" class="button" id="btn-play-ritmo" onclick="toggleRitmoPlayback()">
+                            ▶ Escuchar Melodía + Metrónomo
+                        </button>
+                    </div>
+
+                    <div class="metronome-beats mt-3" id="metronome-beats">
+                        <div class="beat-dot" data-beat="0"><span>1</span><small>Fuerte</small></div>
+                        <div class="beat-dot" data-beat="1"><span>2</span><small>Pulso</small></div>
+                        <div class="beat-dot" data-beat="2"><span>3</span><small>Pulso</small></div>
+                        <div class="beat-dot" data-beat="3"><span>4</span><small>Pulso</small></div>
+                    </div>
+                </div>
+
+                <div class="options-container">
+                    <label class="options-label">¿Cómo se percibe la melodía respecto al metrónomo?</label>
+                    <div class="options-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        @foreach($opcionesRitmo as $opcion)
+                            <label class="option-card" for="opcion_{{ $loop->index }}" style="justify-content:center;text-align:center;flex-direction:column;gap:.35rem;">
+                                <input type="radio" id="opcion_{{ $loop->index }}" name="respuesta" value="{{ $opcion }}" required>
+                                <span class="option-indicator" style="font-size:1.3rem;">
+                                    {{ str_contains(strtolower($opcion), 'adelant') ? '⏩' : (str_contains(strtolower($opcion), 'atras') ? '⏪' : '🎯') }}
+                                </span>
+                                <span class="option-text font-semibold">{{ $opcion }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
             @else
-                {{-- Modalidad por defecto: clasica (opción múltiple estándar) --}}
+                {{-- Modalidad por defecto: clasica --}}
                 <div class="options-container">
                     <label class="options-label">Selecciona tu respuesta:</label>
                     <div class="options-grid">
@@ -273,19 +303,10 @@
         </div>
     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    {{-- COMPONENTE: Captura de Micrófono (feat/audio-captura) --}}
+    @if(!empty($ejercicio->metadata['audio_captura']))
+        @include('components.audio-captura')
+    @endif
 
     <!-- Historial de Intentos Previos en este Ejercicio -->
     @if($ultimosIntentos->isNotEmpty())
@@ -378,6 +399,26 @@
 .chord-drag-hint { font-size: .65rem; opacity: .7; margin-top: .15rem; letter-spacing: 2px; }
 .progresion-arrows { display: flex; gap: .5rem; align-items: center; min-height: 24px; color: #6366f1; font-size: 1.3rem; flex-wrap: wrap; }
 .progresion-preview { padding: .6rem 1rem; background: #eff6ff; border-radius: 8px; color: #1e3a8a; }
+
+/* ── Sincronía Rítmica (Metrónomo + Melodía) ─────────────────────── */
+.ritmo-exercise-box {
+    background: linear-gradient(135deg, #f5f3ff 0%, #eef2ff 100%);
+    border: 2px solid #c7d2fe; border-radius: 12px; padding: 1.25rem;
+}
+.ritmo-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.ritmo-badge { display: inline-block; background: #4f46e5; color: #fff; padding: .25rem .75rem; border-radius: 999px; font-size: .85rem; }
+.metronome-beats { display: grid; grid-template-columns: repeat(4, 1fr); gap: .75rem; }
+.beat-dot {
+    background: #fff; border: 2px solid #e0e7ff; border-radius: 10px; padding: .6rem;
+    text-align: center; transition: all .12s ease; display: flex; flex-direction: column; align-items: center;
+}
+.beat-dot span { font-size: 1.25rem; font-weight: 800; color: #4338ca; }
+.beat-dot small { font-size: .7rem; color: #6b7280; text-transform: uppercase; }
+.beat-dot.active-beat {
+    background: #4f46e5; border-color: #312e81; transform: scale(1.06);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+}
+.beat-dot.active-beat span, .beat-dot.active-beat small { color: #fff; }
 </style>
 <script>
 // Contador de tiempo de resolución en segundos
@@ -441,11 +482,10 @@ function playNoteSound(freq) {
     const btnLimp = document.getElementById('btn-limpiar-pent');
     const form    = document.getElementById('form-ejercicio');
 
-    if (!bank || !hiddenR) return; // modalidad no activa
+    if (!bank || !hiddenR) return;
 
     let draggingToken = null;
 
-    // ── Iniciar arrastre desde el banco ──────────────────────────────
     bank.querySelectorAll('.nota-token').forEach(token => {
         token.addEventListener('dragstart', e => {
             draggingToken = token;
@@ -456,7 +496,6 @@ function playNoteSound(freq) {
         token.addEventListener('dragend', () => token.classList.remove('dragging'));
     });
 
-    // ── Slots del pentagrama ─────────────────────────────────────────
     slots.forEach(slot => {
         slot.addEventListener('dragover', e => {
             e.preventDefault();
@@ -467,7 +506,7 @@ function playNoteSound(freq) {
             e.preventDefault();
             slot.classList.remove('drag-over');
             if (!draggingToken || draggingToken.classList.contains('placed')) return;
-            if (slot.dataset.filled) return; // ya ocupado
+            if (slot.dataset.filled) return;
 
             const nota = draggingToken.dataset.nota;
             slot.dataset.filled = nota;
@@ -478,7 +517,6 @@ function playNoteSound(freq) {
             actualizarRespuesta();
         });
 
-        // Permitir devolver nota al banco con doble clic
         slot.addEventListener('dblclick', () => {
             const nota = slot.dataset.filled;
             if (!nota) return;
@@ -494,7 +532,6 @@ function playNoteSound(freq) {
         });
     });
 
-    // ── Limpiar todo ─────────────────────────────────────────────────
     if (btnLimp) {
         btnLimp.addEventListener('click', () => {
             slots.forEach(slot => {
@@ -509,7 +546,6 @@ function playNoteSound(freq) {
         });
     }
 
-    // ── Actualizar campo oculto + preview ────────────────────────────
     function actualizarRespuesta() {
         const notas = [...slots].map(s => s.dataset.filled || '').filter(Boolean);
         const str   = notas.join(' - ');
@@ -518,7 +554,6 @@ function playNoteSound(freq) {
         if (preview) preview.style.display = notas.length ? 'block' : 'none';
     }
 
-    // ── Validación antes de enviar ────────────────────────────────────
     if (form) {
         form.addEventListener('submit', e => {
             if (!hiddenR.value.trim()) {
@@ -531,7 +566,6 @@ function playNoteSound(freq) {
 
 /* ══════════════════════════════════════════════════════════════════════
    PROGRESIONES FUNCIONALES — Modalidad: progresion_funcional
-   Los bloques se reordenan arrastrándolos dentro del tablero.
    ══════════════════════════════════════════════════════════════════════ */
 (function initProgresion() {
     const board   = document.getElementById('progresion-board');
@@ -541,7 +575,7 @@ function playNoteSound(freq) {
     const arrows  = document.getElementById('progresion-arrows');
     const form    = document.getElementById('form-ejercicio');
 
-    if (!board || !hiddenP) return; // modalidad no activa
+    if (!board || !hiddenP) return;
 
     let draggingBlock = null;
 
@@ -562,13 +596,7 @@ function playNoteSound(freq) {
             e.preventDefault();
             blk.classList.remove('drag-over-block');
             if (!draggingBlock || draggingBlock === blk) return;
-            // Intercambiar posiciones en el DOM
-            const afterBlk = blk.nextSibling;
-            if (afterBlk === draggingBlock) {
-                board.insertBefore(draggingBlock, blk);
-            } else {
-                board.insertBefore(draggingBlock, blk);
-            }
+            board.insertBefore(draggingBlock, blk);
             actualizarProgresion();
         });
     });
@@ -580,7 +608,6 @@ function playNoteSound(freq) {
         hiddenP.value = str;
         if (prevTxt) prevTxt.textContent = str;
         if (preview) preview.style.display = acordes.length ? 'block' : 'none';
-        // Renderizar flechas de flujo
         if (arrows) {
             arrows.innerHTML = acordes.map((a, i) =>
                 i < acordes.length - 1 ? `<span>${a}</span><span>→</span>` : `<span>${a}</span>`
@@ -588,10 +615,8 @@ function playNoteSound(freq) {
         }
     }
 
-    // Inicializar el estado visual al cargar
     actualizarProgresion();
 
-    // Validación al enviar
     if (form) {
         form.addEventListener('submit', e => {
             if (!hiddenP.value.trim()) {
@@ -601,5 +626,89 @@ function playNoteSound(freq) {
         });
     }
 })();
+
+/* ══════════════════════════════════════════════════════════════════════
+   SINCRONÍA RÍTMICA — Metrónomo + Melodía con Desfase (Web Audio API)
+   ══════════════════════════════════════════════════════════════════════ */
+let ritmoTimer = null;
+let ritmoPlaying = false;
+
+function toggleRitmoPlayback() {
+    const box = document.querySelector('.ritmo-exercise-box');
+    const btn = document.getElementById('btn-play-ritmo');
+    const dots = document.querySelectorAll('.beat-dot');
+    if (!box || !btn) return;
+
+    if (ritmoPlaying) {
+        clearInterval(ritmoTimer);
+        ritmoPlaying = false;
+        btn.textContent = '▶ Escuchar Melodía + Metrónomo';
+        dots.forEach(d => d.classList.remove('active-beat'));
+        return;
+    }
+
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const bpm = parseInt(box.dataset.bpm || '100', 10);
+    const offsetMs = parseInt(box.dataset.offset || '0', 10);
+    const beatMs = (60 / bpm) * 1000;
+    const melodyFreqs = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 293.66, 261.63];
+    let step = 0;
+
+    ritmoPlaying = true;
+    btn.textContent = '⏹ Detener Audio';
+
+    function playClickAt(time, isDownbeat) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(isDownbeat ? 1150 : 780, time);
+        gain.gain.setValueAtTime(0.28, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.045);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(time);
+        osc.stop(time + 0.05);
+    }
+
+    function playMelodyNoteAt(time, freq) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, time);
+        gain.gain.setValueAtTime(0.001, time);
+        gain.gain.linearRampToValueAtTime(0.32, time + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.38);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(time);
+        osc.stop(time + 0.4);
+    }
+
+    function triggerStep() {
+        if (!ritmoPlaying) return;
+        const beatIdx = step % 4;
+        dots.forEach((d, i) => d.classList.toggle('active-beat', i === beatIdx));
+
+        const baseTime = audioCtx.currentTime + 0.15;
+        const noteTime = Math.max(audioCtx.currentTime + 0.01, baseTime + (offsetMs / 1000));
+
+        playClickAt(baseTime, beatIdx === 0);
+        playMelodyNoteAt(noteTime, melodyFreqs[step % melodyFreqs.length]);
+
+        step++;
+        if (step >= 8) {
+            setTimeout(() => {
+                if (ritmoPlaying) toggleRitmoPlayback();
+            }, beatMs);
+        }
+    }
+
+    triggerStep();
+    ritmoTimer = setInterval(() => {
+        if (step < 8) triggerStep();
+    }, beatMs);
+}
 </script>
 @endpush
