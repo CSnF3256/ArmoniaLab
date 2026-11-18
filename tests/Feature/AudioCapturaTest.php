@@ -18,30 +18,33 @@ class AudioCapturaTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected User    $estudiante;
-    protected User    $admin;
-    protected Course  $curso;
+    protected User $estudiante;
+
+    protected User $admin;
+
+    protected Course $curso;
+
     protected Leccion $leccion;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $docente          = User::factory()->create(['role' => 'docente']);
-        $this->admin      = User::factory()->create(['role' => 'admin']);
+        $docente = User::factory()->create(['role' => 'docente']);
+        $this->admin = User::factory()->create(['role' => 'admin']);
         $this->estudiante = User::factory()->create(['role' => 'estudiante']);
 
         $this->curso = Course::create([
-            'user_id'     => $docente->id,
-            'title'       => 'Curso de Audio',
+            'user_id' => $docente->id,
+            'title' => 'Curso de Audio',
             'description' => 'Pruebas de captura de audio',
-            'level'       => 'Principiante',
-            'status'      => 'Publicado',
+            'level' => 'Principiante',
+            'status' => 'Publicado',
         ]);
 
         $this->leccion = Leccion::create([
             'course_id' => $this->curso->id,
-            'titulo'    => 'Lección con Audio',
+            'titulo' => 'Lección con Audio',
             'contenido' => 'Teoría de captura',
             'habilidad' => 'Triadas Mayores',
         ]);
@@ -55,15 +58,19 @@ class AudioCapturaTest extends TestCase
     private function crearEjercicioConAudio(array $overrides = []): Ejercicio
     {
         return Ejercicio::create(array_merge([
-            'leccion_id'         => $this->leccion->id,
-            'pregunta'           => '¿Qué acorde forman las notas Do, Mi, Sol?',
-            'opcion_1'           => 'Do Mayor',
-            'opcion_2'           => 'La Menor',
+            'leccion_id' => $this->leccion->id,
+            'pregunta' => '¿Qué acorde forman las notas Do, Mi, Sol?',
+            'opcion_1' => 'Do Mayor',
+            'opcion_2' => 'La Menor',
             'respuesta_correcta' => 'Do Mayor',
-            'explicacion'        => 'Do-Mi-Sol forman la tríada de Do Mayor.',
-            'habilidad'          => 'Triadas Mayores',
-            'modalidad'          => 'clasica',
-            'metadata'           => ['audio_captura' => true, 'pista' => 'Escucha el acorde'],
+            'explicacion' => 'Do-Mi-Sol forman la tríada de Do Mayor.',
+            'habilidad' => 'Triadas Mayores',
+            'modalidad' => 'clasica',
+            'metadata' => [
+                'audio_captura' => true,
+                'audio_notas_objetivo' => ['Do', 'Mi', 'Sol'],
+                'pista' => 'Escucha el acorde',
+            ],
         ], $overrides));
     }
 
@@ -73,15 +80,15 @@ class AudioCapturaTest extends TestCase
     private function crearEjercicioSinAudio(array $overrides = []): Ejercicio
     {
         return Ejercicio::create(array_merge([
-            'leccion_id'         => $this->leccion->id,
-            'pregunta'           => '¿Cuántos semitonos tiene una tercera mayor?',
-            'opcion_1'           => '4',
-            'opcion_2'           => '3',
+            'leccion_id' => $this->leccion->id,
+            'pregunta' => '¿Cuántos semitonos tiene una tercera mayor?',
+            'opcion_1' => '4',
+            'opcion_2' => '3',
             'respuesta_correcta' => '4',
-            'explicacion'        => 'Una tercera mayor tiene 4 semitonos.',
-            'habilidad'          => 'Intervalos',
-            'modalidad'          => 'clasica',
-            'metadata'           => null,
+            'explicacion' => 'Una tercera mayor tiene 4 semitonos.',
+            'habilidad' => 'Intervalos',
+            'modalidad' => 'clasica',
+            'metadata' => null,
         ], $overrides));
     }
 
@@ -113,6 +120,10 @@ class AudioCapturaTest extends TestCase
         $response->assertSee('audio-start-btn', false);
         $response->assertSee('audio-visualizer', false);
         $response->assertSee('getUserMedia', false);
+        $response->assertSee('audio-recognition-panel', false);
+        $response->assertSee('Do · Mi · Sol', false);
+        $response->assertSee('analyser.fftSize = 8192', false);
+        $response->assertSee('energiaDeClase', false);
     }
 
     // ── Test 3: Ejercicio SIN audio NO incluye el panel de micrófono ────
@@ -137,7 +148,7 @@ class AudioCapturaTest extends TestCase
 
         $response = $this->actingAs($this->estudiante)
             ->post(route('ejercicios.responder', $ejercicio), [
-                'respuesta'       => 'Do Mayor',
+                'respuesta' => 'Do Mayor',
                 'tiempo_segundos' => 15,
             ]);
 
@@ -155,7 +166,7 @@ class AudioCapturaTest extends TestCase
 
         $response = $this->actingAs($this->estudiante)
             ->post(route('ejercicios.responder', $ejercicio), [
-                'respuesta'       => 'Do Mayor',
+                'respuesta' => 'Do Mayor',
                 'tiempo_segundos' => 8,
             ]);
 
@@ -173,7 +184,7 @@ class AudioCapturaTest extends TestCase
 
         $response = $this->actingAs($this->estudiante)
             ->post(route('ejercicios.responder', $ejercicio), [
-                'respuesta'       => 'La Menor',
+                'respuesta' => 'La Menor',
                 'tiempo_segundos' => 20,
             ]);
 
@@ -198,26 +209,54 @@ class AudioCapturaTest extends TestCase
     {
         $response = $this->actingAs($this->admin)
             ->post(route('admin.ejercicios.store'), [
-                'course_id'          => $this->curso->id,
-                'leccion_id'         => $this->leccion->id,
-                'pregunta'           => 'Ejercicio con captura de audio',
-                'tipo'               => 'opcion_multiple',
-                'habilidad'          => 'Triadas',
-                'dificultad'         => 'Fácil',
-                'modalidad'          => 'clasica',
-                'opcion_1'           => 'Do Mayor',
-                'opcion_2'           => 'Sol Mayor',
-                'opcion_3'           => 'La Menor',
-                'opcion_4'           => 'Fa Mayor',
+                'course_id' => $this->curso->id,
+                'leccion_id' => $this->leccion->id,
+                'pregunta' => 'Ejercicio con captura de audio',
+                'tipo' => 'opcion_multiple',
+                'habilidad' => 'Triadas',
+                'dificultad' => 'Fácil',
+                'modalidad' => 'clasica',
+                'opcion_1' => 'Do Mayor',
+                'opcion_2' => 'Sol Mayor',
+                'opcion_3' => 'La Menor',
+                'opcion_4' => 'Fa Mayor',
                 'respuesta_correcta' => 'Do Mayor',
-                'explicacion'        => 'El acorde correcto.',
-                'puntos'             => 10,
-                'metadata_pista'     => 'Escucha atentamente',
-                'audio_captura'      => true,
+                'explicacion' => 'El acorde correcto.',
+                'puntos' => 10,
+                'metadata_pista' => 'Escucha atentamente',
+                'audio_captura' => true,
+                'audio_notas_objetivo' => 'Do, Mi, Sol',
             ]);
 
         $response->assertStatus(302);
         $response->assertSessionHasNoErrors();
+
+        $ejercicio = Ejercicio::latest('id')->firstOrFail();
+        $this->assertTrue($ejercicio->metadata['audio_captura']);
+        $this->assertSame(['Do', 'Mi', 'Sol'], $ejercicio->metadata['audio_notas_objetivo']);
+    }
+
+    public function test_admin_debe_indicar_notas_validas_para_reconocimiento(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.ejercicios.store'), [
+                'course_id' => $this->curso->id,
+                'leccion_id' => $this->leccion->id,
+                'pregunta' => 'Toca el acorde indicado',
+                'tipo' => 'opcion_multiple',
+                'habilidad' => 'Triadas',
+                'dificultad' => 'Fácil',
+                'modalidad' => 'clasica',
+                'opcion_1' => 'Do Mayor',
+                'opcion_2' => 'Sol Mayor',
+                'respuesta_correcta' => 'Do Mayor',
+                'puntos' => 10,
+                'audio_captura' => true,
+                'audio_notas_objetivo' => 'Do, Nota inventada, Sol',
+            ]);
+
+        $response->assertSessionHasErrors(['audio_notas_objetivo']);
+        $this->assertDatabaseCount('ejercicios', 0);
     }
 
     // ── Test 9: Regresión — modalidades clásicas no se ven afectadas ────
@@ -225,10 +264,10 @@ class AudioCapturaTest extends TestCase
     public function test_modalidades_clasicas_no_afectadas_por_cambios_audio(): void
     {
         $ejercicio = $this->crearEjercicioSinAudio([
-            'modalidad'          => 'verdadero_falso',
-            'pregunta'           => '¿La escala mayor tiene 7 notas?',
-            'opcion_1'           => 'Verdadero',
-            'opcion_2'           => 'Falso',
+            'modalidad' => 'verdadero_falso',
+            'pregunta' => '¿La escala mayor tiene 7 notas?',
+            'opcion_1' => 'Verdadero',
+            'opcion_2' => 'Falso',
             'respuesta_correcta' => 'Verdadero',
         ]);
 

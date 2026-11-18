@@ -115,6 +115,21 @@
                 <div>{{-- espacio --}}</div>
             </div>
 
+            <div class="options-creation-box p-3 mb-3" style="border-color:#c4b5fd;background:#f5f3ff;">
+                <label style="display:flex;align-items:center;gap:.6rem;">
+                    <input id="audio_captura" name="audio_captura" type="checkbox" value="1"
+                           @checked(old('audio_captura')) style="width:auto;">
+                    <strong>🎙️ Activar reconocimiento de acorde por micrófono</strong>
+                </label>
+                <div id="audio-config" class="mt-2">
+                    <label for="audio_notas_objetivo">Notas que forman el acorde *</label>
+                    <input id="audio_notas_objetivo" name="audio_notas_objetivo" type="text"
+                           value="{{ old('audio_notas_objetivo') }}" placeholder="Ej: Do, Mi, Sol">
+                    <p class="field-help text-sm text-muted">Entre 2 y 6 notas separadas por comas. Se aceptan sostenidos y bemoles, por ejemplo Fa# o Sib.</p>
+                    @error('audio_notas_objetivo') <p class="error">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
             {{-- Campos exclusivos para modalidades interactivas avanzadas --}}
             <div id="campos-interactivos" class="mb-3" style="display:none;">
                 <div class="options-creation-box p-3" style="border-color:#a5b4fc;background:#eef2ff;">
@@ -252,6 +267,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectModalidad = document.getElementById('modalidad');
     const camposInteractivos = document.getElementById('campos-interactivos');
     const MODALES_AVANZADAS = ['construccion_visual', 'progresion_funcional'];
+    const audioCheckbox = document.getElementById('audio_captura');
+    const audioConfig = document.getElementById('audio-config');
+    const audioNotas = document.getElementById('audio_notas_objetivo');
 
     function toggleCamposInteractivos() {
         if (!selectModalidad || !camposInteractivos) return;
@@ -260,6 +278,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selectModalidad) {
         selectModalidad.addEventListener('change', toggleCamposInteractivos);
         toggleCamposInteractivos();
+    }
+
+    function toggleAudioConfig() {
+        const activo = Boolean(audioCheckbox && audioCheckbox.checked);
+        if (audioConfig) audioConfig.style.display = activo ? 'block' : 'none';
+        if (audioNotas) audioNotas.required = activo;
+    }
+    if (audioCheckbox) {
+        audioCheckbox.addEventListener('change', toggleAudioConfig);
+        toggleAudioConfig();
     }
 });
 </script>

@@ -111,6 +111,22 @@
                 <div>{{-- espacio --}}</div>
             </div>
 
+            <div class="options-creation-box p-3 mb-3" style="border-color:#c4b5fd;background:#f5f3ff;">
+                <label style="display:flex;align-items:center;gap:.6rem;">
+                    <input id="audio_captura" name="audio_captura" type="checkbox" value="1"
+                           @checked(old('audio_captura', $ejercicio->metadata['audio_captura'] ?? false)) style="width:auto;">
+                    <strong>🎙️ Activar reconocimiento de acorde por micrófono</strong>
+                </label>
+                <div id="audio-config" class="mt-2">
+                    <label for="audio_notas_objetivo">Notas que forman el acorde *</label>
+                    <input id="audio_notas_objetivo" name="audio_notas_objetivo" type="text"
+                           value="{{ old('audio_notas_objetivo', implode(', ', $ejercicio->metadata['audio_notas_objetivo'] ?? [])) }}"
+                           placeholder="Ej: Do, Mi, Sol">
+                    <p class="field-help text-sm text-muted">Entre 2 y 6 notas separadas por comas.</p>
+                    @error('audio_notas_objetivo') <p class="error">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
             <div class="mb-3">
                 <label for="pregunta">Pregunta o Enunciado *</label>
                 <textarea id="pregunta" name="pregunta" rows="3" required>{{ old('pregunta', $ejercicio->pregunta) }}</textarea>
@@ -189,6 +205,21 @@ async function cargarLecciones(courseId, preseleccionarId = null) {
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarLecciones(document.getElementById('course_id').value, leccionSeleccionada);
+
+    const audioCheckbox = document.getElementById('audio_captura');
+    const audioConfig = document.getElementById('audio-config');
+    const audioNotas = document.getElementById('audio_notas_objetivo');
+
+    function toggleAudioConfig() {
+        const activo = Boolean(audioCheckbox && audioCheckbox.checked);
+        if (audioConfig) audioConfig.style.display = activo ? 'block' : 'none';
+        if (audioNotas) audioNotas.required = activo;
+    }
+
+    if (audioCheckbox) {
+        audioCheckbox.addEventListener('change', toggleAudioConfig);
+        toggleAudioConfig();
+    }
 });
 </script>
 @endpush

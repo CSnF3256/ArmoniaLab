@@ -139,6 +139,44 @@
     color: #991b1b;
     font-size: .9rem;
 }
+.audio-recognition {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid #ddd6fe;
+    border-radius: 10px;
+    background: #faf5ff;
+}
+.audio-recognition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: .75rem;
+}
+.audio-recognition-item {
+    padding: .75rem;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #ede9fe;
+}
+.audio-recognition-label {
+    display: block;
+    color: #6b7280;
+    font-size: .78rem;
+    font-weight: 700;
+    margin-bottom: .3rem;
+    text-transform: uppercase;
+}
+.audio-recognition-result {
+    margin-top: .75rem;
+    padding: .75rem 1rem;
+    border-radius: 8px;
+    background: #eef2ff;
+    color: #3730a3;
+    font-weight: 700;
+}
+.audio-recognition-result.is-correct {
+    background: #dcfce7;
+    color: #166534;
+}
 </style>
 
 <div class="card audio-captura-card mt-4" id="audio-captura-panel">
@@ -176,6 +214,27 @@
         </div>
         <canvas id="audio-visualizer" class="audio-canvas-box" width="600" height="70"></canvas>
     </div>
+
+    @if(!empty($ejercicio->metadata['audio_notas_objetivo']))
+    <div class="audio-recognition" id="audio-recognition-panel">
+        <div class="audio-recognition-grid">
+            <div class="audio-recognition-item">
+                <span class="audio-recognition-label">Acorde objetivo</span>
+                <strong id="audio-target-notes">{{ implode(' · ', $ejercicio->metadata['audio_notas_objetivo'] ?? []) }}</strong>
+            </div>
+            <div class="audio-recognition-item">
+                <span class="audio-recognition-label">Notas detectadas</span>
+                <strong id="audio-detected-notes">—</strong>
+            </div>
+        </div>
+        <div class="audio-recognition-result" id="audio-recognition-result" aria-live="polite">
+            Activa el micrófono y toca el acorde de forma sostenida.
+        </div>
+        <p style="margin:.6rem 0 0;color:#6b7280;font-size:.8rem;">
+            El análisis se realiza en este navegador. ArmoníaLab no graba ni envía tu audio al servidor.
+        </p>
+    </div>
+    @endif
 </div>
 
 @push('scripts')
@@ -188,6 +247,9 @@
     const levelBar    = document.getElementById('audio-level-bar');
     const dbLabel     = document.getElementById('audio-db-label');
     const canvas      = document.getElementById('audio-visualizer');
+    const detectedBox = document.getElementById('audio-detected-notes');
+    const resultBox   = document.getElementById('audio-recognition-result');
+    const targetNotes = @json(array_values($ejercicio->metadata['audio_notas_objetivo'] ?? []));
 
     if (!startBtn || !canvas) return;
 
@@ -195,6 +257,13 @@
     let audioContext = null;
     let analyser = null;
     let animationId = null;
+    let framesCorrectos = 0;
+
+    const pitchClasses = {
+        'Do': 0, 'Do#': 1, 'Reb': 1, 'Re': 2, 'Re#': 3, 'Mib': 3,
+        'Mi': 4, 'Fa': 5, 'Fa#': 6, 'Solb': 6, 'Sol': 7,
+        'Sol#': 8, 'Lab': 8, 'La': 9, 'La#': 10, 'Sib': 10, 'Si': 11
+    };
 
     async function solicitarMicrofono() {
         errorBox.style.display = 'none';
@@ -205,7 +274,14 @@
 
         try {
             statusBadge.textContent = '⏳ Solicitando permiso...';
-            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false
+                },
+                video: false
+            });
 
             const tracks = mediaStream.getAudioTracks();
             const label = (tracks[0] && tracks[0].label) ? tracks[0].label : 'Micrófono conectado';
@@ -225,12 +301,14 @@
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioContext.createMediaStreamSource(stream);
         analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
+        analyser.fftSize = 8192;
+        analyser.smoothingTimeConstant = 0.72;
         source.connect(analyser);
 
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
         const ctx = canvas.getContext('2d');
+        let frame = 0;
 
         function renderFrame() {
             animationId = requestAnimationFrame(renderFrame);
@@ -244,12 +322,16 @@
             if (levelBar) levelBar.style.width = pct + '%';
             if (dbLabel) dbLabel.textContent = pct + '%';
 
+            frame++;
+            if (frame % 6 === 0) analizarAcorde(dataArray);
+
             ctx.fillStyle = '#0f172a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const barWidth = (canvas.width / bufferLength) * 2.2;
+            const visualBins = Math.min(160, bufferLength);
+            const barWidth = canvas.width / visualBins;
             let x = 0;
-            for (let i = 0; i < bufferLength; i++) {
+            for (let i = 0; i < visualBins; i++) {
                 const barHeight = (dataArray[i] / 255) * canvas.height;
                 ctx.fillStyle = barHeight > canvas.height * 0.7 ? '#f43f5e' : '#818cf8';
                 ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
@@ -257,6 +339,58 @@
             }
         }
         renderFrame();
+    }
+
+    function analizarAcorde(dataArray) {
+        if (!targetNotes.length || !analyser || !audioContext) return;
+
+        let maximo = 0;
+        for (let i = 0; i < dataArray.length; i++) maximo = Math.max(maximo, dataArray[i]);
+
+        if (maximo < 55) {
+            framesCorrectos = 0;
+            detectedBox.textContent = 'Esperando sonido…';
+            resultBox.textContent = 'Toca el acorde con un volumen estable.';
+            resultBox.classList.remove('is-correct');
+            return;
+        }
+
+        const umbral = Math.max(62, maximo * 0.42);
+        const detectadas = targetNotes.filter(nota => energiaDeClase(pitchClasses[nota], dataArray) >= umbral);
+        detectedBox.textContent = detectadas.length ? detectadas.join(' · ') : 'Ninguna nota objetivo';
+
+        if (detectadas.length === targetNotes.length) {
+            framesCorrectos++;
+        } else {
+            framesCorrectos = Math.max(0, framesCorrectos - 1);
+        }
+
+        if (framesCorrectos >= 6) {
+            resultBox.textContent = '✅ ¡Acorde correcto! Se detectaron todas las notas objetivo.';
+            resultBox.classList.add('is-correct');
+        } else {
+            const faltantes = targetNotes.filter(nota => !detectadas.includes(nota));
+            resultBox.textContent = faltantes.length
+                ? 'Sigue intentando. Faltan por detectar: ' + faltantes.join(', ') + '.'
+                : 'Mantén el acorde un momento para confirmar la lectura.';
+            resultBox.classList.remove('is-correct');
+        }
+    }
+
+    function energiaDeClase(pitchClass, dataArray) {
+        if (pitchClass === undefined) return 0;
+        let energia = 0;
+
+        for (let midi = 36; midi <= 84; midi++) {
+            if (((midi % 12) + 12) % 12 !== pitchClass) continue;
+            const frecuencia = 440 * Math.pow(2, (midi - 69) / 12);
+            const bin = Math.round(frecuencia * analyser.fftSize / audioContext.sampleRate);
+            for (let offset = -1; offset <= 1; offset++) {
+                energia = Math.max(energia, dataArray[bin + offset] || 0);
+            }
+        }
+
+        return energia;
     }
 
     function liberarMicrofono() {
@@ -274,6 +408,12 @@
         }
         if (levelBar) levelBar.style.width = '0%';
         if (dbLabel) dbLabel.textContent = '0%';
+        if (detectedBox) detectedBox.textContent = '—';
+        if (resultBox) {
+            resultBox.textContent = 'Activa el micrófono y toca el acorde de forma sostenida.';
+            resultBox.classList.remove('is-correct');
+        }
+        framesCorrectos = 0;
         statusBadge.textContent = '⚪ Micrófono liberado';
         statusBadge.className = 'audio-device-badge';
         startBtn.style.display = 'inline-flex';
