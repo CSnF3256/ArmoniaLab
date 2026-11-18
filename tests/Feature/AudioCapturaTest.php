@@ -125,6 +125,8 @@ class AudioCapturaTest extends TestCase
         $response->assertSee('analyser.fftSize = 32768', false);
         $response->assertSee('audio-calibrate-btn', false);
         $response->assertSee('audio-confidence', false);
+        $response->assertSee('audio-sensitivity', false);
+        $response->assertSee('Alta (teléfono o parlante)', false);
         $response->assertSee('detectarNotaAjena', false);
         $response->assertSee('getFloatTimeDomainData', false);
     }

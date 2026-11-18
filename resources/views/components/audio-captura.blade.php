@@ -250,6 +250,14 @@
                 <span class="audio-recognition-label">Confianza</span>
                 <strong class="audio-confidence" id="audio-confidence">0%</strong>
             </div>
+            <div class="audio-recognition-item">
+                <label class="audio-recognition-label" for="audio-sensitivity">Sensibilidad</label>
+                <select id="audio-sensitivity" style="width:100%;padding:.4rem;border:1px solid #ddd6fe;border-radius:7px;">
+                    <option value="0.85">Baja (ambiente ruidoso)</option>
+                    <option value="1">Normal</option>
+                    <option value="1.4" selected>Alta (teléfono o parlante)</option>
+                </select>
+            </div>
         </div>
         <div class="audio-recognition-result" id="audio-recognition-result" aria-live="polite">
             Activa el micrófono y toca el acorde de forma sostenida.
@@ -275,6 +283,7 @@
     const detectedBox = document.getElementById('audio-detected-notes');
     const resultBox   = document.getElementById('audio-recognition-result');
     const confidenceBox = document.getElementById('audio-confidence');
+    const sensitivitySelect = document.getElementById('audio-sensitivity');
     const targetNotes = @json(array_values($ejercicio->metadata['audio_notas_objetivo'] ?? []));
 
     if (!startBtn || !canvas) return;
@@ -420,12 +429,15 @@
             return;
         }
 
-        const umbralRms = Math.max(0.015, ruidoRms * 3.5);
+        const sensibilidad = Number(sensitivitySelect?.value || 1);
+        const umbralRms = Math.max(0.004, ruidoRms * 2.2) / sensibilidad;
         if (rms < umbralRms) {
             framesCorrectos = 0;
             detectedBox.textContent = 'Esperando sonido…';
             confidenceBox.textContent = '0%';
-            resultBox.textContent = 'La señal está por debajo del ruido ambiental.';
+            const nivelActual = Math.round(rms * 500);
+            const nivelMinimo = Math.max(1, Math.round(umbralRms * 500));
+            resultBox.textContent = `Señal insuficiente: ${nivelActual}%. Acerca el sonido o usa sensibilidad alta (mínimo aproximado: ${nivelMinimo}%).`;
             resultBox.classList.remove('is-correct');
             return;
         }
@@ -435,8 +447,8 @@
 
         const lecturas = targetNotes.map(nota => {
             const lectura = medirNota(nota, dataArray);
-            const umbral = Math.max(40, (ruidoPorNota[nota] || 0) * 2.5 + 15, maximo * 0.18);
-            const presente = lectura.energia >= umbral && lectura.prominencia >= 1.15;
+            const umbral = Math.max(24, (ruidoPorNota[nota] || 0) * 1.8 + 8, maximo * 0.10) / sensibilidad;
+            const presente = lectura.energia >= umbral && lectura.prominencia >= 1.06;
             const confianza = presente
                 ? Math.min(100, Math.round((lectura.energia / Math.max(umbral, 1)) * 60))
                 : Math.min(59, Math.round((lectura.energia / Math.max(umbral, 1)) * 60));
@@ -455,7 +467,7 @@
             framesCorrectos = Math.max(0, framesCorrectos - 1);
         }
 
-        if (framesCorrectos >= 12) {
+        if (framesCorrectos >= 8) {
             resultBox.textContent = '✅ ¡Acorde correcto! Se detectaron todas las notas objetivo.';
             resultBox.classList.add('is-correct');
         } else {

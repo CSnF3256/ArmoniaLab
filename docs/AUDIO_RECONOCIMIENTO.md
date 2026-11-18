@@ -40,7 +40,7 @@ La configuración se guarda en el campo JSON `metadata` del ejercicio:
 7. Al activar el micrófono se calibra el ruido ambiental durante aproximadamente 1.5 segundos.
 8. Cada frecuencia objetivo debe superar el ruido calibrado y formar un pico espectral definido.
 9. Se rechazan notas fuertes ajenas dentro del rango de la disposición configurada.
-10. El acorde se confirma después de doce lecturas completas consecutivas y se muestra un porcentaje de confianza.
+10. El acorde se confirma después de ocho lecturas completas consecutivas y se muestra un porcentaje de confianza.
 
 ## Privacidad y seguridad
 
@@ -55,6 +55,8 @@ La configuración se guarda en el campo JSON `metadata` del ejercicio:
 Es un prototipo educativo basado en análisis espectral. El estudiante debe tocar la disposición de notas y octavas configurada por el docente. El resultado depende del micrófono, el ruido, la afinación y el instrumento. No reemplaza un afinador profesional ni un modelo especializado de reconocimiento musical.
 
 Para una lectura estable, el estudiante debe mantener silencio durante la calibración inicial. Si cambia el ruido del ambiente, puede usar el botón **Recalibrar ruido**.
+
+El selector de sensibilidad ofrece tres niveles. **Alta** está pensado para reproducir acordes desde un teléfono o parlante; **Baja** reduce falsos positivos en ambientes ruidosos. Si existe señal pero no aparecen las notas, se debe comprobar también que el audio reproducido use las mismas octavas configuradas.
 
 ## Archivos principales
 
