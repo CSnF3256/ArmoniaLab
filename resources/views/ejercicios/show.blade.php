@@ -285,6 +285,14 @@
                 <div class="helper-keyboard mt-3">
                     <p class="text-sm text-muted">Haz click en las teclas para escuchar su afinación y ayudarte a deducir el acorde.</p>
                     <p class="text-sm text-muted">Haz click o usa Q W E R T Y U I para las teclas blancas y 2 3 5 6 7 para las negras.</p>
+                    <div class="piano-volume-control">
+                        <div class="piano-volume-heading">
+                            <label for="piano-volume">Volumen del piano</label>
+                            <output id="piano-volume-value" for="piano-volume">200%</output>
+                        </div>
+                        <input type="range" id="piano-volume" min="0" max="800" step="10" value="200" aria-label="Volumen del piano">
+                        <div class="piano-volume-scale"><span>0%</span><span>800%</span></div>
+                    </div>
                     <div class="piano-keyboard mini">
                         @php
                             $notasOctava = ['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si', 'Do'];
@@ -452,9 +460,57 @@ if (timerBox && timerDisplay) {
 
 // Web Audio API para el teclado de apoyo
 let audioCtx = null;
+let pianoOutputGain = null;
+let pianoLimiter = null;
+let pianoVolumePercent = 200;
+const pianoVolumeStorageKey = 'armonialab-piano-volume';
+
+try {
+    const storedVolume = Number(localStorage.getItem(pianoVolumeStorageKey));
+    if (localStorage.getItem(pianoVolumeStorageKey) !== null && Number.isFinite(storedVolume) && storedVolume >= 0 && storedVolume <= 800) {
+        pianoVolumePercent = storedVolume;
+    }
+} catch (error) {
+    // El control sigue funcionando aunque el navegador bloquee el almacenamiento local.
+}
+
+const pianoVolumeSlider = document.getElementById('piano-volume');
+const pianoVolumeValue = document.getElementById('piano-volume-value');
+
+function updatePianoVolume(value) {
+    pianoVolumePercent = Number(value);
+    if (pianoVolumeValue) pianoVolumeValue.textContent = `${pianoVolumePercent}%`;
+    if (pianoOutputGain && audioCtx) {
+        pianoOutputGain.gain.setTargetAtTime(pianoVolumePercent / 100, audioCtx.currentTime, 0.03);
+    }
+    try {
+        localStorage.setItem(pianoVolumeStorageKey, String(pianoVolumePercent));
+    } catch (error) {
+        // El volumen permanece aplicado durante esta visita aunque no pueda guardarse.
+    }
+}
+
+if (pianoVolumeSlider) {
+    pianoVolumeSlider.value = pianoVolumePercent;
+    updatePianoVolume(pianoVolumePercent);
+    pianoVolumeSlider.addEventListener('input', event => updatePianoVolume(event.target.value));
+}
+
 function playNoteSound(freq) {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (!pianoOutputGain) {
+        pianoOutputGain = audioCtx.createGain();
+        pianoLimiter = audioCtx.createDynamicsCompressor();
+        pianoLimiter.threshold.setValueAtTime(-2, audioCtx.currentTime);
+        pianoLimiter.knee.setValueAtTime(0, audioCtx.currentTime);
+        pianoLimiter.ratio.setValueAtTime(20, audioCtx.currentTime);
+        pianoLimiter.attack.setValueAtTime(0.003, audioCtx.currentTime);
+        pianoLimiter.release.setValueAtTime(0.15, audioCtx.currentTime);
+        pianoOutputGain.gain.setValueAtTime(pianoVolumePercent / 100, audioCtx.currentTime);
+        pianoOutputGain.connect(pianoLimiter);
+        pianoLimiter.connect(audioCtx.destination);
+    }
 
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -467,7 +523,7 @@ function playNoteSound(freq) {
     gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.0);
 
     osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(pianoOutputGain);
 
     osc.start();
     osc.stop(audioCtx.currentTime + 1.0);
