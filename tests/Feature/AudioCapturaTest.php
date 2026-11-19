@@ -127,6 +127,7 @@ class AudioCapturaTest extends TestCase
         $response->assertSee('audio-confidence', false);
         $response->assertSee('audio-sensitivity', false);
         $response->assertSee('Alta (teléfono o parlante)', false);
+        $response->assertSee('Muy alta (teléfono o parlante lejano)', false);
         $response->assertSee('detectarNotaAjena', false);
         $response->assertSee('getFloatTimeDomainData', false);
     }
