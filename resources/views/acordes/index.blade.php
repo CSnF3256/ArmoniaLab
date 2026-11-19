@@ -224,6 +224,7 @@ function playChordSound() {
     @if($resultado)
         const ctx = getAudioContext();
         const notas = @json($resultado['notas']);
+        const volumenPorNota = 0.7 / notas.length;
 
         notas.forEach((nota, index) => {
             const freq = FRECUENCIAS[nota] || 261.63;
@@ -237,7 +238,7 @@ function playChordSound() {
             osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
 
             gain.gain.setValueAtTime(0, ctx.currentTime + delay);
-            gain.gain.linearRampToValueAtTime(0.25 / notas.length, ctx.currentTime + delay + 0.05);
+            gain.gain.linearRampToValueAtTime(volumenPorNota, ctx.currentTime + delay + 0.05);
             gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + 2.0);
 
             osc.connect(gain);
