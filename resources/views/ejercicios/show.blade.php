@@ -284,12 +284,12 @@
                 <summary>🎹 Desplegar teclado virtual de apoyo para comprobar notas y sonidos</summary>
                 <div class="helper-keyboard mt-3">
                     <p class="text-sm text-muted">Haz click en las teclas para escuchar su afinación y ayudarte a deducir el acorde.</p>
-                    <p class="text-sm text-muted">Haz click o usa Q W E R T Y U para las teclas blancas y 2 3 5 6 7 para las negras.</p>
+                    <p class="text-sm text-muted">Haz click o usa Q W E R T Y U I para las teclas blancas y 2 3 5 6 7 para las negras.</p>
                     <div class="piano-keyboard mini">
                         @php
-                            $notasOctava = ['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si'];
-                            $esNegra = [false, true, false, true, false, false, true, false, true, false, true, false];
-                            $teclasPiano = ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u'];
+                            $notasOctava = ['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si', 'Do'];
+                            $esNegra = [false, true, false, true, false, false, true, false, true, false, true, false, false];
+                            $teclasPiano = ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u', 'i'];
                         @endphp
                         <div class="keyboard-octave">
                             @foreach($notasOctava as $idx => $n)
@@ -636,7 +636,7 @@ function playNoteSound(freq) {
 const pianoKeyboard = document.querySelector('.helper-keyboard .piano-keyboard');
 const pianoKeyCodes = {
     KeyQ: 'q', Digit2: '2', KeyW: 'w', Digit3: '3', KeyE: 'e', KeyR: 'r',
-    Digit5: '5', KeyT: 't', Digit6: '6', KeyY: 'y', Digit7: '7', KeyU: 'u'
+    Digit5: '5', KeyT: 't', Digit6: '6', KeyY: 'y', Digit7: '7', KeyU: 'u', KeyI: 'i'
 };
 const heldPianoKeys = new Set();
 
