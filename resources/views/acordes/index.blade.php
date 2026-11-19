@@ -98,6 +98,7 @@
                     <span class="legend-item"><span class="legend-dot root-dot"></span> Fundamental</span>
                     <span class="legend-item"><span class="legend-dot active-dot"></span> Notas del Acorde</span>
                     <span class="legend-hint">Haz click en las teclas para escuchar su tono individual</span>
+                    <span class="legend-hint">Teclas: Q W E R T Y U (blancas) · 2 3 5 6 7 (negras)</span>
                 </div>
 
                 <div class="piano-keyboard" id="piano-keyboard">
@@ -105,6 +106,7 @@
                     @php
                         $notasOctava = ['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si'];
                         $esNegra = [false, true, false, true, false, false, true, false, true, false, true, false];
+                        $teclasPiano = ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u'];
                     @endphp
 
                     <div class="keyboard-octave">
@@ -116,6 +118,7 @@
                             @endphp
                             <div class="key {{ $negra ? 'black-key' : 'white-key' }} {{ $esActiva ? 'active' : '' }} {{ $esFundamental ? 'root-key' : '' }}"
                                  data-note="{{ $nota }}"
+                                 data-piano-key="{{ $teclasPiano[$idx] }}"
                                  data-pitch="{{ 261.63 * pow(2, $idx / 12) }}"
                                  onclick="playSingleNote({{ 261.63 * pow(2, $idx / 12) }}, '{{ $nota }}')">
                                 <span class="key-label">{{ $nota }}</span>
@@ -245,5 +248,40 @@ function playChordSound() {
         });
     @endif
 }
+
+const pianoKeyboard = document.getElementById('piano-keyboard');
+const pianoKeyCodes = {
+    KeyQ: 'q', Digit2: '2', KeyW: 'w', Digit3: '3', KeyE: 'e', KeyR: 'r',
+    Digit5: '5', KeyT: 't', Digit6: '6', KeyY: 'y', Digit7: '7', KeyU: 'u'
+};
+const heldPianoKeys = new Set();
+
+function isTextInput(target) {
+    return target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+}
+
+document.addEventListener('keydown', event => {
+    const pianoKey = pianoKeyCodes[event.code];
+    if (!pianoKeyboard || !pianoKey || isTextInput(event.target) || event.altKey || event.ctrlKey || event.metaKey) return;
+    event.preventDefault();
+    if (event.repeat || heldPianoKeys.has(pianoKey)) return;
+    const key = pianoKeyboard.querySelector(`[data-piano-key="${pianoKey}"]`);
+    if (!key) return;
+    heldPianoKeys.add(pianoKey);
+    key.classList.add('keyboard-pressed');
+    key.click();
+});
+
+document.addEventListener('keyup', event => {
+    const pianoKey = pianoKeyCodes[event.code];
+    if (!pianoKey) return;
+    heldPianoKeys.delete(pianoKey);
+    pianoKeyboard?.querySelector(`[data-piano-key="${pianoKey}"]`)?.classList.remove('keyboard-pressed');
+});
+
+window.addEventListener('blur', () => {
+    heldPianoKeys.clear();
+    pianoKeyboard?.querySelectorAll('.keyboard-pressed').forEach(key => key.classList.remove('keyboard-pressed'));
+});
 </script>
 @endpush
