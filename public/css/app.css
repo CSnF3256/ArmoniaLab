@@ -709,6 +709,28 @@ select:disabled {
     padding-bottom: 0.5rem;
 }
 
+.piano-volume-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 190px;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid #e4def0;
+    border-radius: 10px;
+    background: #f8f6fc;
+}
+.piano-volume-heading,
+.piano-volume-scale {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+}
+.piano-volume-heading label { font-size: 0.85rem; font-weight: 700; color: #4b3e64; }
+.piano-volume-heading output { font-size: 0.8rem; font-weight: 700; color: #6d3fc0; }
+.piano-volume-control input[type="range"] { width: 100%; accent-color: #6d3fc0; cursor: pointer; }
+.piano-volume-scale { font-size: 0.7rem; color: #7c728d; }
+
 .keyboard-octave {
     display: flex;
     position: relative;
