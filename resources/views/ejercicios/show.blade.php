@@ -284,14 +284,17 @@
                 <summary>🎹 Desplegar teclado virtual de apoyo para comprobar notas y sonidos</summary>
                 <div class="helper-keyboard mt-3">
                     <p class="text-sm text-muted">Haz click en las teclas para escuchar su afinación y ayudarte a deducir el acorde.</p>
+                    <p class="text-sm text-muted">Haz click o usa Q W E R T Y U para las teclas blancas y 2 3 5 6 7 para las negras.</p>
                     <div class="piano-keyboard mini">
                         @php
                             $notasOctava = ['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si'];
                             $esNegra = [false, true, false, true, false, false, true, false, true, false, true, false];
+                            $teclasPiano = ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u'];
                         @endphp
                         <div class="keyboard-octave">
                             @foreach($notasOctava as $idx => $n)
                                 <div class="key {{ $esNegra[$idx] ? 'black-key' : 'white-key' }}"
+                                     data-piano-key="{{ $teclasPiano[$idx] }}"
                                      onclick="playNoteSound({{ 261.63 * pow(2, $idx / 12) }})">
                                     <span class="key-label">{{ $n }}</span>
                                 </div>
@@ -630,6 +633,42 @@ function playNoteSound(freq) {
 /* ══════════════════════════════════════════════════════════════════════
    SINCRONÍA RÍTMICA — Metrónomo + Melodía con Desfase (Web Audio API)
    ══════════════════════════════════════════════════════════════════════ */
+const pianoKeyboard = document.querySelector('.helper-keyboard .piano-keyboard');
+const pianoKeyCodes = {
+    KeyQ: 'q', Digit2: '2', KeyW: 'w', Digit3: '3', KeyE: 'e', KeyR: 'r',
+    Digit5: '5', KeyT: 't', Digit6: '6', KeyY: 'y', Digit7: '7', KeyU: 'u'
+};
+const heldPianoKeys = new Set();
+
+function isTextInput(target) {
+    return target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+}
+
+document.addEventListener('keydown', event => {
+    const pianoKey = pianoKeyCodes[event.code];
+    if (!pianoKeyboard || !pianoKey || isTextInput(event.target) || event.altKey || event.ctrlKey || event.metaKey) return;
+    event.preventDefault();
+    if (event.repeat || heldPianoKeys.has(pianoKey)) return;
+    const key = pianoKeyboard.querySelector(`[data-piano-key="${pianoKey}"]`);
+    if (!key) return;
+    pianoKeyboard.closest('details')?.setAttribute('open', '');
+    heldPianoKeys.add(pianoKey);
+    key.classList.add('keyboard-pressed');
+    key.click();
+});
+
+document.addEventListener('keyup', event => {
+    const pianoKey = pianoKeyCodes[event.code];
+    if (!pianoKey) return;
+    heldPianoKeys.delete(pianoKey);
+    pianoKeyboard?.querySelector(`[data-piano-key="${pianoKey}"]`)?.classList.remove('keyboard-pressed');
+});
+
+window.addEventListener('blur', () => {
+    heldPianoKeys.clear();
+    pianoKeyboard?.querySelectorAll('.keyboard-pressed').forEach(key => key.classList.remove('keyboard-pressed'));
+});
+
 let ritmoTimer = null;
 let ritmoPlaying = false;
 
