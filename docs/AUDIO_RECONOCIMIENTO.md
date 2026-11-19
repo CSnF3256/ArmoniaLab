@@ -56,7 +56,7 @@ Es un prototipo educativo basado en análisis espectral. El estudiante debe toca
 
 Para una lectura estable, el estudiante debe mantener silencio durante la calibración inicial. Si cambia el ruido del ambiente, puede usar el botón **Recalibrar ruido**.
 
-El selector de sensibilidad ofrece tres niveles. **Alta** está pensado para reproducir acordes desde un teléfono o parlante; **Baja** reduce falsos positivos en ambientes ruidosos. Si existe señal pero no aparecen las notas, se debe comprobar también que el audio reproducido use las mismas octavas configuradas.
+El selector ofrece cuatro niveles. **Alta** está pensado para un teléfono o parlante cercano y **Muy alta** para fuentes externas con señal débil o más alejadas. El modo muy alto reduce el piso de volumen, pero conserva un margen sobre el ruido calibrado y la comprobación espectral para evitar falsos positivos. **Baja** se recomienda en ambientes ruidosos. Si el medidor muestra señal pero no aparecen las notas, se debe comprobar también que el audio use las mismas notas y octavas configuradas.
 
 ## Archivos principales
 

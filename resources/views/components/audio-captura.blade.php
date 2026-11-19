@@ -255,7 +255,8 @@
                 <select id="audio-sensitivity" style="width:100%;padding:.4rem;border:1px solid #ddd6fe;border-radius:7px;">
                     <option value="0.85">Baja (ambiente ruidoso)</option>
                     <option value="1">Normal</option>
-                    <option value="1.4" selected>Alta (teléfono o parlante)</option>
+                    <option value="1.4">Alta (teléfono o parlante cercano)</option>
+                    <option value="2.4" selected>Muy alta (teléfono o parlante lejano)</option>
                 </select>
             </div>
         </div>
@@ -430,7 +431,12 @@
         }
 
         const sensibilidad = Number(sensitivitySelect?.value || 1);
-        const umbralRms = Math.max(0.004, ruidoRms * 2.2) / sensibilidad;
+        // El piso absoluto baja con la sensibilidad, pero el margen sobre el
+        // ruido ambiental se conserva para no aceptar silencio como señal.
+        const umbralRms = Math.max(
+            0.0012 / sensibilidad,
+            ruidoRms * (1 + (0.45 / sensibilidad))
+        );
         if (rms < umbralRms) {
             framesCorrectos = 0;
             detectedBox.textContent = 'Esperando sonido…';
@@ -447,8 +453,13 @@
 
         const lecturas = targetNotes.map(nota => {
             const lectura = medirNota(nota, dataArray);
-            const umbral = Math.max(24, (ruidoPorNota[nota] || 0) * 1.8 + 8, maximo * 0.10) / sensibilidad;
-            const presente = lectura.energia >= umbral && lectura.prominencia >= 1.06;
+            const ruidoNota = ruidoPorNota[nota] || 0;
+            const umbral = Math.max(
+                18 / sensibilidad,
+                ruidoNota * (1 + (0.5 / sensibilidad)) + 3,
+                maximo * 0.07
+            );
+            const presente = lectura.energia >= umbral && lectura.prominencia >= 1.03;
             const confianza = presente
                 ? Math.min(100, Math.round((lectura.energia / Math.max(umbral, 1)) * 60))
                 : Math.min(59, Math.round((lectura.energia / Math.max(umbral, 1)) * 60));
