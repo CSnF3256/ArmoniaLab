@@ -98,21 +98,21 @@
                     <span class="legend-item"><span class="legend-dot root-dot"></span> Fundamental</span>
                     <span class="legend-item"><span class="legend-dot active-dot"></span> Notas del Acorde</span>
                     <span class="legend-hint">Haz click en las teclas para escuchar su tono individual</span>
-                    <span class="legend-hint">Teclas: Q W E R T Y U (blancas) · 2 3 5 6 7 (negras)</span>
+                    <span class="legend-hint">Teclas: Q W E R T Y U I (blancas) · 2 3 5 6 7 (negras)</span>
                 </div>
 
                 <div class="piano-keyboard" id="piano-keyboard">
-                    {{-- Renderizamos 2 octavas (24 semitonos cromáticos) --}}
+                    {{-- Renderizamos una octava cromática completa, incluyendo el Do final --}}
                     @php
-                        $notasOctava = ['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si'];
-                        $esNegra = [false, true, false, true, false, false, true, false, true, false, true, false];
-                        $teclasPiano = ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u'];
+                        $notasOctava = ['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si', 'Do'];
+                        $esNegra = [false, true, false, true, false, false, true, false, true, false, true, false, false];
+                        $teclasPiano = ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u', 'i'];
                     @endphp
 
                     <div class="keyboard-octave">
                         @foreach($notasOctava as $idx => $nota)
                             @php
-                                $esActiva = in_array($idx, $resultado['teclas_activas']);
+                                $esActiva = in_array($idx % 12, $resultado['teclas_activas']);
                                 $esFundamental = ($resultado['fundamental'] === $nota);
                                 $negra = $esNegra[$idx];
                             @endphp
@@ -253,7 +253,7 @@ function playChordSound() {
 const pianoKeyboard = document.getElementById('piano-keyboard');
 const pianoKeyCodes = {
     KeyQ: 'q', Digit2: '2', KeyW: 'w', Digit3: '3', KeyE: 'e', KeyR: 'r',
-    Digit5: '5', KeyT: 't', Digit6: '6', KeyY: 'y', Digit7: '7', KeyU: 'u'
+    Digit5: '5', KeyT: 't', Digit6: '6', KeyY: 'y', Digit7: '7', KeyU: 'u', KeyI: 'i'
 };
 const heldPianoKeys = new Set();
 
