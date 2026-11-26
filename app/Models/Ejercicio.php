@@ -55,23 +55,6 @@ class Ejercicio extends Model
         ];
     }
 
-    /**
-     * Evalúa un payload interactivo (drag-drop o progresión) desde el back-end.
-     * Devuelve [bool $esCorrecta, string $explicacion].
-     */
-    public function evaluarRespuesta(string $respuestaUsuario): array
-    {
-        $normalizar = fn (string $s) => mb_strtolower(preg_replace('/\s+/', ' ', trim($s)));
-
-        $esCorrecta = $normalizar($respuestaUsuario) === $normalizar($this->respuesta_correcta);
-
-        $explicacion = $esCorrecta
-            ? '¡Respuesta correcta! ' . ($this->explicacion ?? 'Has aplicado correctamente las reglas armónicas.')
-            : 'Respuesta incorrecta. ' . ($this->explicacion ?? "La respuesta esperada era: {$this->respuesta_correcta}.");
-
-        return [$esCorrecta, $explicacion];
-    }
-
     public function leccion(): BelongsTo
     {
         return $this->belongsTo(Leccion::class);
