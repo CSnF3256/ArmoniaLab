@@ -8,11 +8,16 @@ use App\Http\Requests\Admin\UpdateEjercicioRequest;
 use App\Models\Course;
 use App\Models\Ejercicio;
 use App\Models\TipoAcorde;
+use App\Services\EjercicioMetadataBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class AdminEjercicioController extends Controller
 {
+    public function __construct(
+        private readonly EjercicioMetadataBuilder $metadataBuilder,
+    ) {}
+
     /**
      * Listado de ejercicios administrativos.
      */
@@ -47,35 +52,8 @@ class AdminEjercicioController extends Controller
     public function store(StoreEjercicioRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-
-        // Opciones: construccion_visual y progresion_funcional pueden tener más de 4 notas/acordes
-        $opciones = array_values(array_filter([
-            $validated['opcion_1'] ?? null,
-            $validated['opcion_2'] ?? null,
-            $validated['opcion_3'] ?? null,
-            $validated['opcion_4'] ?? null,
-        ], fn ($v) => ! is_null($v) && $v !== ''));
-
-        // Metadatos opcionales de modalidad (pista, tiempo, reglas armónicas, contexto)
-        $metadata = array_filter([
-            'pista' => $validated['metadata_pista'] ?? null,
-            'tiempo_limite' => isset($validated['metadata_tiempo_limite']) ? (int) $validated['metadata_tiempo_limite'] : null,
-            'reglas' => $validated['metadata_reglas'] ?? null,
-            'contexto' => $validated['metadata_contexto'] ?? null,
-            'audio_captura' => $request->boolean('audio_captura') ? true : null,
-            'audio_notas_objetivo' => $request->boolean('audio_captura')
-                ? $this->normalizarNotasDeAudio($validated['audio_notas_objetivo'])
-                : null,
-        ], fn ($v) => ! is_null($v) && $v !== '');
-
-        // Para progresion_funcional, almacenar también las reglas en datos_pregunta para acceso desde la vista
-        $datosPregunta = ['opciones' => $opciones];
-        if (! empty($metadata['reglas'])) {
-            $datosPregunta['reglas'] = $metadata['reglas'];
-        }
-        if (! empty($metadata['contexto'])) {
-            $datosPregunta['contexto'] = $metadata['contexto'];
-        }
+        $metadata = $this->metadataBuilder->build($validated, $request->boolean('audio_captura'));
+        $datosPregunta = $this->metadataBuilder->buildQuestionData($validated, $metadata);
 
         Ejercicio::create([
             'leccion_id' => $validated['leccion_id'],
@@ -86,7 +64,7 @@ class AdminEjercicioController extends Controller
             'habilidad' => $validated['habilidad'],
             'dificultad' => $validated['dificultad'],
             'datos_pregunta' => $datosPregunta,
-            'metadata' => empty($metadata) ? null : $metadata,
+            'metadata' => $metadata,
             'respuesta_correcta' => $validated['respuesta_correcta'],
             'explicacion' => $validated['explicacion'] ?? null,
             'puntos' => $validated['puntos'],
@@ -117,6 +95,7 @@ class AdminEjercicioController extends Controller
     public function update(UpdateEjercicioRequest $request, Ejercicio $ejercicio): RedirectResponse
     {
         $validated = $request->validated();
+        $metadata = $this->metadataBuilder->build($validated, $request->boolean('audio_captura'));
 
         $ejercicio->update([
             'leccion_id' => $validated['leccion_id'],
@@ -126,24 +105,8 @@ class AdminEjercicioController extends Controller
             'modalidad' => $validated['modalidad'],
             'habilidad' => $validated['habilidad'],
             'dificultad' => $validated['dificultad'],
-            'datos_pregunta' => [
-                'opciones' => array_values(array_filter([
-                    $validated['opcion_1'],
-                    $validated['opcion_2'],
-                    $validated['opcion_3'] ?? null,
-                    $validated['opcion_4'] ?? null,
-                ], fn ($opcion) => ! is_null($opcion) && $opcion !== '')),
-            ],
-            'metadata' => array_filter([
-                'pista' => $validated['metadata_pista'] ?? null,
-                'tiempo_limite' => isset($validated['metadata_tiempo_limite']) ? (int) $validated['metadata_tiempo_limite'] : null,
-                'reglas' => $validated['metadata_reglas'] ?? null,
-                'contexto' => $validated['metadata_contexto'] ?? null,
-                'audio_captura' => $request->boolean('audio_captura') ? true : null,
-                'audio_notas_objetivo' => $request->boolean('audio_captura')
-                    ? $this->normalizarNotasDeAudio($validated['audio_notas_objetivo'])
-                    : null,
-            ], fn ($v) => ! is_null($v)) ?: null,
+            'datos_pregunta' => $this->metadataBuilder->buildQuestionData($validated, $metadata),
+            'metadata' => $metadata,
             'respuesta_correcta' => $validated['respuesta_correcta'],
             'explicacion' => $validated['explicacion'] ?? null,
             'puntos' => $validated['puntos'],
@@ -164,23 +127,4 @@ class AdminEjercicioController extends Controller
             ->with('success', 'Ejercicio eliminado exitosamente.');
     }
 
-    /** @return array<int, string> */
-    private function normalizarNotasDeAudio(string $value): array
-    {
-        $nombres = [
-            'do' => 'Do', 'do#' => 'Do#', 'reb' => 'Reb', 're' => 'Re', 're#' => 'Re#', 'mib' => 'Mib',
-            'mi' => 'Mi', 'fa' => 'Fa', 'fa#' => 'Fa#', 'solb' => 'Solb', 'sol' => 'Sol',
-            'sol#' => 'Sol#', 'lab' => 'Lab', 'la' => 'La', 'la#' => 'La#', 'sib' => 'Sib', 'si' => 'Si',
-        ];
-
-        return array_values(array_filter(array_map(function (string $nota) use ($nombres): string {
-            $nota = strtolower(trim($nota));
-
-            if (preg_match('/^([a-z]+#?)([2-6])$/u', $nota, $coincidencia) && isset($nombres[$coincidencia[1]])) {
-                return $nombres[$coincidencia[1]].$coincidencia[2];
-            }
-
-            return ucfirst($nota);
-        }, explode(',', $value))));
-    }
 }
