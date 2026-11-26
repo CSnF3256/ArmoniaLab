@@ -3,12 +3,15 @@
 namespace App\Services;
 
 use App\Contracts\RecomendacionServiceContract;
+use App\Services\Recommendations\PersonalizedRecommendationProvider;
 use App\Models\Ejercicio;
 use App\Models\Intento;
 use App\Models\User;
 
 class RecomendacionService implements RecomendacionServiceContract
 {
+    public function __construct(private readonly PersonalizedRecommendationProvider $personalizedRecommendations) {}
+
     /**
      * Analiza el historial de intentos del usuario y genera un diagnóstico
      * detallado de progreso por habilidad con recomendaciones personalizadas.
@@ -91,7 +94,7 @@ class RecomendacionService implements RecomendacionServiceContract
             }
         }
 
-        $recomendaciones = $this->proponerEjerciciosPersonalizados($user, $habilidadesCriticas);
+        $recomendaciones = $this->personalizedRecommendations->provide(array_column($habilidadesCriticas, 'nombre'));
 
         $mensajeDiagnostico = empty($habilidadesCriticas)
             ? '¡Excelente rendimiento armónico! Has dominado la mayoría de habilidades evaluadas. Sigue con desafíos avanzados.'
@@ -107,36 +110,6 @@ class RecomendacionService implements RecomendacionServiceContract
             'recomendaciones' => $recomendaciones,
             'mensaje_diagnostico' => $mensajeDiagnostico,
         ];
-    }
-
-    /**
-     * Propone ejercicios específicos basados en las habilidades débiles del usuario
-     * o ejercicios previamente fallados.
-     */
-    public function proponerEjerciciosPersonalizados(User $user, array $habilidadesCriticas, int $limite = 4): array
-    {
-        $nombresCriticos = array_column($habilidadesCriticas, 'nombre');
-
-        $query = Ejercicio::with(['leccion.course', 'tipoAcorde']);
-
-        if (! empty($nombresCriticos)) {
-            $query->whereIn('habilidad', $nombresCriticos);
-        }
-
-        $ejercicios = $query->take($limite)->get();
-
-        if ($ejercicios->isEmpty()) {
-            $ejercicios = Ejercicio::with(['leccion.course', 'tipoAcorde'])->take($limite)->get();
-        }
-
-        return $ejercicios->map(function (Ejercicio $ej) {
-            return [
-                'ejercicio' => $ej,
-                'motivo' => "Práctica personalizada para reforzar: {$ej->habilidad}",
-                'leccion_titulo' => $ej->leccion?->titulo ?? 'Lección práctica',
-                'curso_titulo' => $ej->leccion?->course?->title ?? 'Curso general',
-            ];
-        })->toArray();
     }
 
     /**
