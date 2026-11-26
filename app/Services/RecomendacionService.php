@@ -3,14 +3,13 @@
 namespace App\Services;
 
 use App\Contracts\RecomendacionServiceContract;
-use App\Services\Recommendations\PersonalizedRecommendationProvider;
-use App\Models\Ejercicio;
 use App\Models\Intento;
 use App\Models\User;
+use App\Services\Recommendations\RecommendationFallbackResolver;
 
 class RecomendacionService implements RecomendacionServiceContract
 {
-    public function __construct(private readonly PersonalizedRecommendationProvider $personalizedRecommendations) {}
+    public function __construct(private readonly RecommendationFallbackResolver $recommendationResolver) {}
 
     /**
      * Analiza el historial de intentos del usuario y genera un diagnóstico
@@ -28,7 +27,7 @@ class RecomendacionService implements RecomendacionServiceContract
                 'habilidades' => [],
                 'habilidades_criticas' => [],
                 'habilidades_dominadas' => [],
-                'recomendaciones' => $this->generarRecomendacionesIniciales(),
+                'recomendaciones' => $this->recommendationResolver->recommend([], 3, true),
                 'mensaje_diagnostico' => 'Aún no has resuelto ejercicios. Comienza con una práctica guiada para evaluar tu nivel armónico.',
             ];
         }
@@ -94,7 +93,7 @@ class RecomendacionService implements RecomendacionServiceContract
             }
         }
 
-        $recomendaciones = $this->personalizedRecommendations->provide(array_column($habilidadesCriticas, 'nombre'));
+        $recomendaciones = $this->recommendationResolver->recommend(array_column($habilidadesCriticas, 'nombre'));
 
         $mensajeDiagnostico = empty($habilidadesCriticas)
             ? '¡Excelente rendimiento armónico! Has dominado la mayoría de habilidades evaluadas. Sigue con desafíos avanzados.'
@@ -110,22 +109,5 @@ class RecomendacionService implements RecomendacionServiceContract
             'recomendaciones' => $recomendaciones,
             'mensaje_diagnostico' => $mensajeDiagnostico,
         ];
-    }
-
-    /**
-     * Recomendaciones por defecto para usuarios sin historial.
-     */
-    protected function generarRecomendacionesIniciales(): array
-    {
-        $ejercicios = Ejercicio::with(['leccion.course', 'tipoAcorde'])->take(3)->get();
-
-        return $ejercicios->map(function (Ejercicio $ej) {
-            return [
-                'ejercicio' => $ej,
-                'motivo' => "Evaluación diagnóstica inicial en {$ej->habilidad}",
-                'leccion_titulo' => $ej->leccion?->titulo ?? 'Lección práctica',
-                'curso_titulo' => $ej->leccion?->course?->title ?? 'Curso general',
-            ];
-        })->toArray();
     }
 }
