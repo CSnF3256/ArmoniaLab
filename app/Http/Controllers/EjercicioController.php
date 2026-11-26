@@ -6,13 +6,15 @@ use App\Contracts\RecomendacionServiceContract;
 use App\Models\Ejercicio;
 use App\Models\Intento;
 use App\Models\ProgresoLeccion;
+use App\Services\ExerciseEvaluatorResolver;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class EjercicioController extends Controller
 {
     public function __construct(
-        protected RecomendacionServiceContract $recomendacionService
+        protected RecomendacionServiceContract $recomendacionService,
+        protected ExerciseEvaluatorResolver $exerciseEvaluatorResolver,
     ) {}
 
     /**
@@ -84,9 +86,10 @@ class EjercicioController extends Controller
         $respuestaUsuario = trim($request->input('respuesta'));
         $respuestaCorrecta = trim($ejercicio->respuesta_correcta);
 
-        // Normalización para comparación insensible a mayúsculas y espacios duplicados
-        $esCorrecta = mb_strtolower(preg_replace('/\s+/', ' ', $respuestaUsuario)) ===
-                      mb_strtolower(preg_replace('/\s+/', ' ', $respuestaCorrecta));
+        $modalidad = $ejercicio->modalidad ?: 'clasica';
+        $esCorrecta = $this->exerciseEvaluatorResolver
+            ->resolve($modalidad)
+            ->evaluate($ejercicio, $respuestaUsuario);
 
         $puntos = $esCorrecta ? $ejercicio->puntos : 0;
         $explicacion = $esCorrecta
