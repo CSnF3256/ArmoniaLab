@@ -7,7 +7,7 @@ use App\Models\Ejercicio;
 
 class PersonalizedRecommendationProvider implements RecommendationProvider
 {
-    public function provide(array $weakSkills, int $limit = 4): array
+    public function provide(array $weakSkills, int $limit = 4, bool $initialAssessment = false): array
     {
         if ($weakSkills === [] || $limit < 1) {
             return [];
