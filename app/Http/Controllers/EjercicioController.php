@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\RecomendacionServiceContract;
 use App\Models\Ejercicio;
 use App\Models\Intento;
 use App\Models\ProgresoLeccion;
-use App\Services\RecomendacionService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class EjercicioController extends Controller
 {
     public function __construct(
-        protected RecomendacionService $recomendacionService
+        protected RecomendacionServiceContract $recomendacionService
     ) {}
 
     /**

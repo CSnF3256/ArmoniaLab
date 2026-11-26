@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Contracts\RecomendacionServiceContract;
 use App\Models\Ejercicio;
 use App\Models\Intento;
 use App\Models\User;
 
-class RecomendacionService
+class RecomendacionService implements RecomendacionServiceContract
 {
     /**
      * Analiza el historial de intentos del usuario y genera un diagnóstico
