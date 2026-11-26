@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Contracts\AcordeServiceContract;
 use App\Contracts\RecomendacionServiceContract;
 use App\Services\AcordeService;
+use App\Services\ExerciseEvaluatorResolver;
 use App\Services\RecomendacionService;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(AcordeServiceContract::class, AcordeService::class);
         $this->app->bind(RecomendacionServiceContract::class, RecomendacionService::class);
+        $this->app->singleton(ExerciseEvaluatorResolver::class);
     }
 
     /**
