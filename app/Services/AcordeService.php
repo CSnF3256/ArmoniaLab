@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Contracts\AcordeServiceContract;
 use App\Models\TipoAcorde;
 
-class AcordeService
+class AcordeService implements AcordeServiceContract
 {
     /**
      * Las 12 clases cromáticas de notas musicales en notación latina y americana.
@@ -41,6 +42,11 @@ class AcordeService
         12 => 'Octava justa (8P / 12 st)',
         14 => 'Novena mayor (9M / 14 st)',
     ];
+
+    public function availableNotes(): array
+    {
+        return self::NOTAS_LATINAS;
+    }
 
     /**
      * Construye y calcula las notas de un acorde musical.

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\AcordeServiceContract;
 use App\Models\AcordeGuardado;
 use App\Models\TipoAcorde;
-use App\Services\AcordeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -12,7 +12,7 @@ use Illuminate\View\View;
 class AcordeController extends Controller
 {
     public function __construct(
-        protected AcordeService $acordeService
+        protected AcordeServiceContract $acordeService
     ) {}
 
     /**
@@ -21,7 +21,7 @@ class AcordeController extends Controller
     public function index(Request $request): View
     {
         $tipos = TipoAcorde::orderBy('categoria')->orderBy('id')->get();
-        $notasCromaticas = AcordeService::NOTAS_LATINAS;
+        $notasCromaticas = $this->acordeService->availableNotes();
 
         $fundamental = $request->input('fundamental', 'Do');
         $tipoId = $request->input('tipo_id', $tipos->first()?->id);
@@ -58,7 +58,7 @@ class AcordeController extends Controller
     public function calcular(Request $request)
     {
         $validated = $request->validate([
-            'fundamental' => ['required', 'string', 'in:' . implode(',', AcordeService::NOTAS_LATINAS)],
+            'fundamental' => ['required', 'string', 'in:' . implode(',', $this->acordeService->availableNotes())],
             'tipo_id' => ['required', 'integer', 'exists:tipo_acordes,id'],
         ], [
             'fundamental.required' => 'Debe seleccionar una nota fundamental.',
@@ -89,7 +89,7 @@ class AcordeController extends Controller
     public function guardar(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'fundamental' => ['required', 'string', 'in:' . implode(',', AcordeService::NOTAS_LATINAS)],
+            'fundamental' => ['required', 'string', 'in:' . implode(',', $this->acordeService->availableNotes())],
             'tipo_id' => ['required', 'integer', 'exists:tipo_acordes,id'],
         ]);
 

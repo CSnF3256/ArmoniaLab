@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\RecomendacionService;
+use App\Contracts\RecomendacionServiceContract;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ProgresoController extends Controller
 {
     public function __construct(
-        protected RecomendacionService $recomendacionService
+        protected RecomendacionServiceContract $recomendacionService
     ) {}
 
     /**
