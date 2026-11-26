@@ -114,7 +114,7 @@ class EjercicioAutocorrectionTest extends TestCase
             'respuesta' => 'Do - Fa - La',
         ]);
 
-        $service = new RecomendacionService();
+        $service = app(RecomendacionService::class);
         $diagnostico = $service->obtenerDiagnostico($this->estudiante);
 
         $this->assertEquals(0, $diagnostico['porcentaje_global']);
