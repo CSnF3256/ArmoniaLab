@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreEjercicioRequest;
+use App\Http\Requests\Admin\UpdateEjercicioRequest;
 use App\Models\Course;
 use App\Models\Ejercicio;
 use App\Models\TipoAcorde;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class AdminEjercicioController extends Controller
@@ -44,52 +44,9 @@ class AdminEjercicioController extends Controller
     /**
      * Guarda el ejercicio asegurando la relación en cascada Curso -> Lección.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreEjercicioRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'course_id' => ['required', 'integer', 'exists:courses,id'],
-            'leccion_id' => [
-                'required',
-                'integer',
-                Rule::exists('lecciones', 'id')->where(fn ($query) => $query->where('course_id', $request->input('course_id'))),
-            ],
-            'tipo_acorde_id' => ['nullable', 'integer', 'exists:tipo_acordes,id'],
-            'pregunta' => ['required', 'string'],
-            'tipo' => ['required', 'string', 'in:opcion_multiple,construir_acorde,identificar_notas,intervalo'],
-            'modalidad' => ['required', 'string', Rule::in(array_keys(Ejercicio::modalidades()))],
-            'habilidad' => ['required', 'string', 'max:100'],
-            'dificultad' => ['required', 'string', 'in:Fácil,Medio,Avanzado'],
-            'opcion_1' => ['required', 'string'],
-            'opcion_2' => ['required', 'string'],
-            'opcion_3' => ['nullable', 'string'],
-            'opcion_4' => ['nullable', 'string'],
-            'respuesta_correcta' => ['required', 'string'],
-            'explicacion' => ['nullable', 'string'],
-            'puntos' => ['required', 'integer', 'min:1', 'max:100'],
-            'metadata_pista' => ['nullable', 'string', 'max:255'],
-            'metadata_tiempo_limite' => ['nullable', 'integer', 'min:0', 'max:600'],
-            'metadata_reglas' => ['nullable', 'string', 'max:500'],
-            'metadata_contexto' => ['nullable', 'string', 'max:500'],
-            'audio_captura' => ['nullable', 'boolean'],
-            'audio_notas_objetivo' => [
-                Rule::requiredIf($request->boolean('audio_captura')),
-                'nullable',
-                'string',
-                'max:100',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (! $this->notasDeAudioValidas((string) $value)) {
-                        $fail('Las notas objetivo deben incluir octava y estar separadas por comas, por ejemplo Do4, Fa#4 o Sib3.');
-                    }
-                },
-            ],
-        ], [
-            'course_id.required' => 'Debe seleccionar un curso desde el dropdown.',
-            'leccion_id.required' => 'Debe seleccionar una lección dependiente del curso.',
-            'leccion_id.exists' => 'La lección elegida no pertenece al curso seleccionado.',
-            'respuesta_correcta.required' => 'La respuesta correcta es obligatoria.',
-            'modalidad.required' => 'Debe elegir una modalidad de ejercicio.',
-            'modalidad.in' => 'La modalidad seleccionada no es válida.',
-        ]);
+        $validated = $request->validated();
 
         // Opciones: construccion_visual y progresion_funcional pueden tener más de 4 notas/acordes
         $opciones = array_values(array_filter([
@@ -157,48 +114,9 @@ class AdminEjercicioController extends Controller
     /**
      * Actualiza un ejercicio validando en Back-End la relación Curso -> Lección.
      */
-    public function update(Request $request, Ejercicio $ejercicio): RedirectResponse
+    public function update(UpdateEjercicioRequest $request, Ejercicio $ejercicio): RedirectResponse
     {
-        $validated = $request->validate([
-            'course_id' => ['required', 'integer', 'exists:courses,id'],
-            'leccion_id' => [
-                'required',
-                'integer',
-                Rule::exists('lecciones', 'id')->where(fn ($query) => $query->where('course_id', $request->input('course_id'))),
-            ],
-            'tipo_acorde_id' => ['nullable', 'integer', 'exists:tipo_acordes,id'],
-            'pregunta' => ['required', 'string'],
-            'tipo' => ['required', 'string', 'in:opcion_multiple,construir_acorde,identificar_notas,intervalo'],
-            'modalidad' => ['required', 'string', Rule::in(array_keys(Ejercicio::modalidades()))],
-            'habilidad' => ['required', 'string', 'max:100'],
-            'dificultad' => ['required', 'string', 'in:Fácil,Medio,Avanzado'],
-            'opcion_1' => ['required', 'string'],
-            'opcion_2' => ['required', 'string'],
-            'opcion_3' => ['nullable', 'string'],
-            'opcion_4' => ['nullable', 'string'],
-            'respuesta_correcta' => ['required', 'string'],
-            'explicacion' => ['nullable', 'string'],
-            'puntos' => ['required', 'integer', 'min:1', 'max:100'],
-            'metadata_pista' => ['nullable', 'string', 'max:255'],
-            'metadata_tiempo_limite' => ['nullable', 'integer', 'min:0', 'max:600'],
-            'metadata_reglas' => ['nullable', 'string', 'max:500'],
-            'metadata_contexto' => ['nullable', 'string', 'max:500'],
-            'audio_captura' => ['nullable', 'boolean'],
-            'audio_notas_objetivo' => [
-                Rule::requiredIf($request->boolean('audio_captura')),
-                'nullable',
-                'string',
-                'max:100',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (! $this->notasDeAudioValidas((string) $value)) {
-                        $fail('Las notas objetivo deben incluir octava y estar separadas por comas, por ejemplo Do4, Fa#4 o Sib3.');
-                    }
-                },
-            ],
-        ], [
-            'leccion_id.exists' => 'La lección elegida no pertenece al curso seleccionado.',
-            'modalidad.in' => 'La modalidad seleccionada no es válida.',
-        ]);
+        $validated = $request->validated();
 
         $ejercicio->update([
             'leccion_id' => $validated['leccion_id'],
@@ -244,29 +162,6 @@ class AdminEjercicioController extends Controller
 
         return redirect()->route('admin.ejercicios.index')
             ->with('success', 'Ejercicio eliminado exitosamente.');
-    }
-
-    private function notasDeAudioValidas(string $value): bool
-    {
-        $notas = $this->normalizarNotasDeAudio($value);
-        $clases = [
-            'Do' => 0, 'Do#' => 1, 'Reb' => 1, 'Re' => 2, 'Re#' => 3, 'Mib' => 3,
-            'Mi' => 4, 'Fa' => 5, 'Fa#' => 6, 'Solb' => 6, 'Sol' => 7,
-            'Sol#' => 8, 'Lab' => 8, 'La' => 9, 'La#' => 10, 'Sib' => 10, 'Si' => 11,
-        ];
-        $frecuencias = [];
-
-        foreach ($notas as $nota) {
-            if (! preg_match('/^(.+)([2-6])$/u', $nota, $coincidencia) || ! isset($clases[$coincidencia[1]])) {
-                return false;
-            }
-
-            $frecuencias[] = $clases[$coincidencia[1]].':'.$coincidencia[2];
-        }
-
-        return count($notas) >= 2
-            && count($notas) <= 6
-            && count($frecuencias) === count(array_unique($frecuencias));
     }
 
     /** @return array<int, string> */
