@@ -2,17 +2,39 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\RecomendacionServiceContract;
 use App\Models\Course;
 use App\Models\Ejercicio;
 use App\Models\Leccion;
 use App\Models\TipoAcorde;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class AdminCoreCrudTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_catalogo_administrativo_no_consulta_intentos_ni_diagnostico(): void
+    {
+        $docente = User::factory()->create(['role' => 'docente']);
+        $recomendacionService = \Mockery::mock(RecomendacionServiceContract::class);
+        $recomendacionService->shouldNotReceive('obtenerDiagnostico');
+        $this->app->instance(RecomendacionServiceContract::class, $recomendacionService);
+
+        DB::connection()->enableQueryLog();
+        DB::connection()->flushQueryLog();
+
+        $response = $this->actingAs($docente)->get(route('admin.ejercicios.index'));
+
+        $response->assertOk();
+        $consultasIntentos = collect(DB::connection()->getQueryLog())
+            ->pluck('query')
+            ->filter(fn (string $sql) => str_contains(strtolower($sql), 'intentos'));
+
+        $this->assertCount(0, $consultasIntentos);
+    }
 
     public function test_admin_puede_editar_y_actualizar_tipo_de_acorde(): void
     {
