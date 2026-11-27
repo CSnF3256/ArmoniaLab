@@ -7,6 +7,10 @@ final class EjercicioMetadataBuilder
     /** @param array<string, mixed> $validated */
     public function build(array $validated, bool $audioEnabled): ?array
     {
+        $audioTargetNote = $audioEnabled
+            ? $this->resolveAudioTargetNote($validated)
+            : null;
+
         $metadata = array_filter([
             'pista' => $validated['metadata_pista'] ?? null,
             'tiempo_limite' => isset($validated['metadata_tiempo_limite'])
@@ -15,9 +19,9 @@ final class EjercicioMetadataBuilder
             'reglas' => $validated['metadata_reglas'] ?? null,
             'contexto' => $validated['metadata_contexto'] ?? null,
             'audio_captura' => $audioEnabled ? true : null,
-            'audio_notas_objetivo' => $audioEnabled
-                ? $this->normalizeAudioNotes((string) $validated['audio_notas_objetivo'])
-                : null,
+            'audio_nota_objetivo' => $audioTargetNote,
+            // Puente temporal para el componente de audio anterior.
+            'audio_notas_objetivo' => $audioTargetNote !== null ? [$audioTargetNote] : null,
         ], fn (mixed $value): bool => $value !== null && $value !== '');
 
         return $metadata === [] ? null : $metadata;
@@ -66,5 +70,15 @@ final class EjercicioMetadataBuilder
 
             return ucfirst($note);
         }, explode(',', $value))));
+    }
+
+    /** @param array<string, mixed> $validated */
+    private function resolveAudioTargetNote(array $validated): ?string
+    {
+        $value = (string) ($validated['audio_nota_objetivo']
+            ?? $validated['audio_notas_objetivo']
+            ?? '');
+
+        return $this->normalizeAudioNotes($value)[0] ?? null;
     }
 }
