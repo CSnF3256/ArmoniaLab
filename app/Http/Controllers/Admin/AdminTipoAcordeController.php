@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Contracts\TipoAcordeCatalogContract;
 use App\Http\Controllers\Controller;
 use App\Models\TipoAcorde;
 use App\Rules\ValidIntervalStructure;
@@ -11,6 +12,10 @@ use Illuminate\View\View;
 
 class AdminTipoAcordeController extends Controller
 {
+    public function __construct(
+        private readonly TipoAcordeCatalogContract $tipoAcordeCatalog,
+    ) {}
+
     /**
      * Catálogo de tipos de acordes para administración.
      */
@@ -67,6 +72,8 @@ class AdminTipoAcordeController extends Controller
             'descripcion' => $validated['descripcion'] ?? null,
         ]);
 
+        $this->tipoAcordeCatalog->forget();
+
         return redirect()->route('admin.tipos-acordes.index')
             ->with('success', "Tipo de acorde '{$validated['nombre']}' registrado y validado en Back-End exitosamente.");
     }
@@ -105,6 +112,8 @@ class AdminTipoAcordeController extends Controller
             'descripcion' => $validated['descripcion'] ?? null,
         ]);
 
+        $this->tipoAcordeCatalog->forget();
+
         return redirect()->route('admin.tipos-acordes.index')
             ->with('success', "Tipo de acorde '{$tipoAcorde->nombre}' actualizado correctamente.");
     }
@@ -116,6 +125,7 @@ class AdminTipoAcordeController extends Controller
     {
         $nombre = $tipoAcorde->nombre;
         $tipoAcorde->delete();
+        $this->tipoAcordeCatalog->forget();
 
         return redirect()->route('admin.tipos-acordes.index')
             ->with('success', "Tipo de acorde '{$nombre}' eliminado.");
