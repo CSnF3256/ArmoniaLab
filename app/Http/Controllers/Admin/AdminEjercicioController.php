@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Contracts\RecomendacionServiceContract;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreEjercicioRequest;
 use App\Http\Requests\Admin\UpdateEjercicioRequest;
@@ -18,7 +17,6 @@ class AdminEjercicioController extends Controller
 {
     public function __construct(
         private readonly EjercicioMetadataBuilder $metadataBuilder,
-        private readonly RecomendacionServiceContract $recomendacionService,
     ) {}
 
     /**
@@ -34,14 +32,11 @@ class AdminEjercicioController extends Controller
         }
 
         $ejercicios = $query->paginate(9)->withQueryString();
-        $user = $request->user();
 
         return view('admin.ejercicios.index', [
             'ejercicios' => $ejercicios,
             'habilidades' => Ejercicio::query()->distinct()->pluck('habilidad'),
             'habilidadSeleccionada' => $habilidadSeleccionada,
-            'intentosUsuario' => $user->intentos()->latest()->get()->groupBy('ejercicio_id'),
-            'diagnostico' => $this->recomendacionService->obtenerDiagnostico($user),
         ]);
     }
 
