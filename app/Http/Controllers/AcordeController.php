@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\AcordeServiceContract;
+use App\Contracts\TipoAcordeCatalogContract;
 use App\Models\AcordeGuardado;
 use App\Models\TipoAcorde;
 use Illuminate\Http\RedirectResponse;
@@ -12,7 +13,8 @@ use Illuminate\View\View;
 class AcordeController extends Controller
 {
     public function __construct(
-        protected AcordeServiceContract $acordeService
+        protected AcordeServiceContract $acordeService,
+        protected TipoAcordeCatalogContract $tipoAcordeCatalog,
     ) {}
 
     /**
@@ -20,7 +22,7 @@ class AcordeController extends Controller
      */
     public function index(Request $request): View
     {
-        $tipos = TipoAcorde::orderBy('categoria')->orderBy('id')->get();
+        $tipos = $this->tipoAcordeCatalog->all();
         $notasCromaticas = $this->acordeService->availableNotes();
 
         $fundamental = $request->input('fundamental', 'Do');
@@ -31,7 +33,7 @@ class AcordeController extends Controller
 
         if ($fundamental && $tipoId) {
             try {
-                $tipoModelo = TipoAcorde::find($tipoId);
+                $tipoModelo = $this->tipoAcordeCatalog->find((int) $tipoId);
                 if ($tipoModelo) {
                     $resultado = $this->acordeService->construir($fundamental, $tipoModelo);
                 } else {
