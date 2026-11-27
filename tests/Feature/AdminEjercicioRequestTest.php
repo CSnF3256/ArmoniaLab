@@ -38,27 +38,39 @@ class AdminEjercicioRequestTest extends TestCase
         ]);
     }
 
-    public function test_requiere_notas_objetivo_cuando_audio_esta_activo(): void
+    public function test_requiere_nota_objetivo_cuando_audio_esta_activo(): void
     {
         $response = $this->actingAs($this->admin)
             ->post(route('admin.ejercicios.store'), $this->validPayload([
                 'audio_captura' => true,
-                'audio_notas_objetivo' => '',
+                'audio_nota_objetivo' => '',
             ]));
 
-        $response->assertSessionHasErrors('audio_notas_objetivo');
+        $response->assertSessionHasErrors('audio_nota_objetivo');
         $this->assertDatabaseCount('ejercicios', 0);
     }
 
-    public function test_rechaza_notas_enarmonicas_duplicadas_en_la_misma_octava(): void
+    public function test_rechaza_mas_de_una_nota_objetivo(): void
     {
         $response = $this->actingAs($this->admin)
             ->post(route('admin.ejercicios.store'), $this->validPayload([
                 'audio_captura' => true,
-                'audio_notas_objetivo' => 'Do#4, Reb4, Sol4',
+                'audio_nota_objetivo' => 'Do4, Mi4',
             ]));
 
-        $response->assertSessionHasErrors('audio_notas_objetivo');
+        $response->assertSessionHasErrors('audio_nota_objetivo');
+        $this->assertDatabaseCount('ejercicios', 0);
+    }
+
+    public function test_rechaza_nota_fuera_del_rango_del_afinador(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.ejercicios.store'), $this->validPayload([
+                'audio_captura' => true,
+                'audio_nota_objetivo' => 'Mi1',
+            ]));
+
+        $response->assertSessionHasErrors('audio_nota_objetivo');
         $this->assertDatabaseCount('ejercicios', 0);
     }
 

@@ -14,11 +14,11 @@ class EjercicioMetadataBuilderTest extends TestCase
             'opcion_1' => 'Mayor',
             'opcion_2' => 'Menor',
             'opcion_3' => '',
-            'metadata_pista' => 'Escucha las tres notas.',
+            'metadata_pista' => 'Escucha la nota.',
             'metadata_tiempo_limite' => '45',
             'metadata_reglas' => 'Usar posición fundamental',
             'metadata_contexto' => 'Tríadas básicas',
-            'audio_notas_objetivo' => 'do4, FA#4, sib4',
+            'audio_nota_objetivo' => 'fa#4',
         ];
 
         $metadata = $builder->build($validated, true);
@@ -26,7 +26,8 @@ class EjercicioMetadataBuilderTest extends TestCase
 
         $this->assertSame(45, $metadata['tiempo_limite']);
         $this->assertTrue($metadata['audio_captura']);
-        $this->assertSame(['Do4', 'Fa#4', 'Sib4'], $metadata['audio_notas_objetivo']);
+        $this->assertSame('Fa#4', $metadata['audio_nota_objetivo']);
+        $this->assertSame(['Fa#4'], $metadata['audio_notas_objetivo']);
         $this->assertSame(['Mayor', 'Menor'], $questionData['opciones']);
         $this->assertSame('Usar posición fundamental', $questionData['reglas']);
         $this->assertSame('Tríadas básicas', $questionData['contexto']);
@@ -37,5 +38,15 @@ class EjercicioMetadataBuilderTest extends TestCase
         $builder = new EjercicioMetadataBuilder;
 
         $this->assertNull($builder->build([], false));
+    }
+
+    public function test_convierte_el_formato_anterior_en_una_nota_objetivo(): void
+    {
+        $metadata = (new EjercicioMetadataBuilder)->build([
+            'audio_notas_objetivo' => 'do4, mi4, sol4',
+        ], true);
+
+        $this->assertSame('Do4', $metadata['audio_nota_objetivo']);
+        $this->assertSame(['Do4'], $metadata['audio_notas_objetivo']);
     }
 }
