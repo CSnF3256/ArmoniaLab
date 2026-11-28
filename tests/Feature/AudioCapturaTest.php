@@ -231,7 +231,7 @@ class AudioCapturaTest extends TestCase
                 'puntos' => 10,
                 'metadata_pista' => 'Escucha atentamente',
                 'audio_captura' => true,
-                'audio_notas_objetivo' => 'Do4, Mi4, Sol4',
+                'audio_nota_objetivo' => 'Do4',
             ]);
 
         $response->assertStatus(302);
@@ -239,7 +239,8 @@ class AudioCapturaTest extends TestCase
 
         $ejercicio = Ejercicio::latest('id')->firstOrFail();
         $this->assertTrue($ejercicio->metadata['audio_captura']);
-        $this->assertSame(['Do4', 'Mi4', 'Sol4'], $ejercicio->metadata['audio_notas_objetivo']);
+        $this->assertSame('Do4', $ejercicio->metadata['audio_nota_objetivo']);
+        $this->assertSame(['Do4'], $ejercicio->metadata['audio_notas_objetivo']);
     }
 
     public function test_admin_rechaza_notas_sin_octava_para_reconocimiento(): void
@@ -258,10 +259,10 @@ class AudioCapturaTest extends TestCase
                 'respuesta_correcta' => 'Do Mayor',
                 'puntos' => 10,
                 'audio_captura' => true,
-                'audio_notas_objetivo' => 'Do, Mi, Sol',
+                'audio_nota_objetivo' => 'Do',
             ]);
 
-        $response->assertSessionHasErrors(['audio_notas_objetivo']);
+        $response->assertSessionHasErrors(['audio_nota_objetivo']);
         $this->assertDatabaseCount('ejercicios', 0);
     }
 

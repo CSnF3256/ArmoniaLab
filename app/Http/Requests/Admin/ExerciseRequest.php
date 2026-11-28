@@ -13,6 +13,14 @@ abstract class ExerciseRequest extends FormRequest
         return $this->user() !== null;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (! $this->filled('audio_nota_objetivo') && $this->filled('audio_notas_objetivo')) {
+            $legacyNotes = explode(',', (string) $this->input('audio_notas_objetivo'));
+            $this->merge(['audio_nota_objetivo' => trim($legacyNotes[0] ?? '')]);
+        }
+    }
+
     /** @return array<string, mixed> */
     public function rules(): array
     {
@@ -42,17 +50,18 @@ abstract class ExerciseRequest extends FormRequest
             'metadata_reglas' => ['nullable', 'string', 'max:500'],
             'metadata_contexto' => ['nullable', 'string', 'max:500'],
             'audio_captura' => ['nullable', 'boolean'],
-            'audio_notas_objetivo' => [
+            'audio_nota_objetivo' => [
                 Rule::requiredIf($this->boolean('audio_captura')),
                 'nullable',
                 'string',
-                'max:100',
+                'max:20',
                 function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (! $this->audioNotesAreValid((string) $value)) {
-                        $fail('Las notas objetivo deben incluir octava y estar separadas por comas, por ejemplo Do4, Fa#4 o Sib3.');
+                    if (! $this->audioTargetNoteIsValid((string) $value)) {
+                        $fail('La nota objetivo debe incluir una octava entre 2 y 6, por ejemplo La4, Fa#4 o Sib3.');
                     }
                 },
             ],
+            'audio_notas_objetivo' => ['nullable', 'string', 'max:100'],
         ];
     }
 
@@ -69,7 +78,7 @@ abstract class ExerciseRequest extends FormRequest
         ];
     }
 
-    private function audioNotesAreValid(string $value): bool
+    private function audioTargetNoteIsValid(string $value): bool
     {
         $notes = $this->normalizeAudioNotes($value);
         $pitchClasses = [
@@ -77,19 +86,11 @@ abstract class ExerciseRequest extends FormRequest
             'Mi' => 4, 'Fa' => 5, 'Fa#' => 6, 'Solb' => 6, 'Sol' => 7,
             'Sol#' => 8, 'Lab' => 8, 'La' => 9, 'La#' => 10, 'Sib' => 10, 'Si' => 11,
         ];
-        $frequencies = [];
-
-        foreach ($notes as $note) {
-            if (! preg_match('/^(.+)([2-6])$/u', $note, $match) || ! isset($pitchClasses[$match[1]])) {
-                return false;
-            }
-
-            $frequencies[] = $pitchClasses[$match[1]].':'.$match[2];
+        if (count($notes) !== 1 || ! preg_match('/^(.+)([2-6])$/u', $notes[0], $match)) {
+            return false;
         }
 
-        return count($notes) >= 2
-            && count($notes) <= 6
-            && count($frequencies) === count(array_unique($frequencies));
+        return isset($pitchClasses[$match[1]]);
     }
 
     /** @return array<int, string> */

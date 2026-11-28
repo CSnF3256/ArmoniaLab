@@ -115,15 +115,15 @@
                 <label style="display:flex;align-items:center;gap:.6rem;">
                     <input id="audio_captura" name="audio_captura" type="checkbox" value="1"
                            @checked(old('audio_captura', $ejercicio->metadata['audio_captura'] ?? false)) style="width:auto;">
-                    <strong>🎙️ Activar reconocimiento de acorde por micrófono</strong>
+                    <strong>🎙️ Activar reconocimiento de nota por micrófono</strong>
                 </label>
                 <div id="audio-config" class="mt-2">
-                    <label for="audio_notas_objetivo">Notas que forman el acorde *</label>
-                    <input id="audio_notas_objetivo" name="audio_notas_objetivo" type="text"
-                           value="{{ old('audio_notas_objetivo', implode(', ', $ejercicio->metadata['audio_notas_objetivo'] ?? [])) }}"
-                           placeholder="Ej: Do4, Mi4, Sol4">
-                    <p class="field-help text-sm text-muted">Entre 2 y 6 notas con octava, separadas por comas.</p>
-                    @error('audio_notas_objetivo') <p class="error">{{ $message }}</p> @enderror
+                    <label for="audio_nota_objetivo">Nota objetivo *</label>
+                    <input id="audio_nota_objetivo" name="audio_nota_objetivo" type="text"
+                           value="{{ old('audio_nota_objetivo', $ejercicio->audioTargetNote()) }}"
+                           placeholder="Ej: La4">
+                    <p class="field-help text-sm text-muted">Ingrese una sola nota con octava. Ejemplos: Mi2, Do4, Fa#4 o Sib3.</p>
+                    @error('audio_nota_objetivo') <p class="error">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -208,12 +208,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const audioCheckbox = document.getElementById('audio_captura');
     const audioConfig = document.getElementById('audio-config');
-    const audioNotas = document.getElementById('audio_notas_objetivo');
+    const audioNota = document.getElementById('audio_nota_objetivo');
 
     function toggleAudioConfig() {
         const activo = Boolean(audioCheckbox && audioCheckbox.checked);
         if (audioConfig) audioConfig.style.display = activo ? 'block' : 'none';
-        if (audioNotas) audioNotas.required = activo;
+        if (audioNota) audioNota.required = activo;
     }
 
     if (audioCheckbox) {

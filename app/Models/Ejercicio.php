@@ -55,6 +55,23 @@ class Ejercicio extends Model
         ];
     }
 
+    /**
+     * Devuelve la nota del afinador y permite leer ejercicios creados con
+     * la metadata anterior, que almacenaba una lista de notas del acorde.
+     */
+    public function audioTargetNote(): ?string
+    {
+        $metadata = $this->metadata ?? [];
+        $targetNote = $metadata['audio_nota_objetivo']
+            ?? ($metadata['audio_notas_objetivo'][0] ?? null);
+
+        if (! is_string($targetNote) || trim($targetNote) === '') {
+            return null;
+        }
+
+        return trim($targetNote);
+    }
+
     public function leccion(): BelongsTo
     {
         return $this->belongsTo(Leccion::class);
